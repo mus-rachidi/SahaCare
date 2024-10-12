@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MenuSelect } from './Form';
 import { BiDotsHorizontalRounded } from 'react-icons/bi';
 import { FiEdit, FiEye } from 'react-icons/fi';
@@ -59,18 +59,18 @@ export function Transactiontable({ data, action, functions }) {
             <td className={tdclass}>
               <div className="flex gap-4 items-center">
                 <span className="w-12">
-                  <img
-                    src={item.user.image}
+                  {/* <img
+                    // src={item.user.image}
                     alt={item.user.title}
                     className="w-full h-12 rounded-full object-cover border border-border"
-                  />
+                  /> */}
                 </span>
 
                 <div>
-                  <h4 className="text-sm font-medium">{item.user.title}</h4>
-                  <p className="text-xs mt-1 text-textGray">
+                  {/* <h4 className="text-sm font-medium">{item.user.title}</h4> */}
+                  {/* <p className="text-xs mt-1 text-textGray">
                     {item.user.phone}
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </td>
@@ -155,11 +155,11 @@ export function InvoiceTable({ data }) {
             <td className={tdclass}>
               <div className="flex gap-4 items-center">
                 <span className="w-12">
-                  <img
-                    src={item?.to?.image}
+                  {/* <img
+                    // src={item?.to?.image}
                     alt={item?.to?.title}
                     className="w-full h-12 rounded-full object-cover border border-border"
-                  />
+                  /> */}
                 </span>
                 <div>
                   <h4 className="text-sm font-medium">{item?.to?.title}</h4>
@@ -421,7 +421,6 @@ export function DoctorsTable({ data, functions, doctor }) {
       },
     },
   ];
-
   return (
     <table className="table-auto w-full">
       <thead className="bg-dry rounded-md overflow-hidden">
@@ -443,7 +442,16 @@ export function DoctorsTable({ data, functions, doctor }) {
           >
             <td className={tdclass}>{index + 1}</td>
             <td className={tdclass}>
-              <h4 className="text-sm font-medium">{item.user.title}</h4>
+              <div className="flex gap-4 items-center">
+                <span className="w-12">
+                  {/* <img
+                    // src={item.user.image}
+                    alt={item.user.title}
+                    className="w-full h-12 rounded-full object-cover border border-border"
+                  /> */}
+                </span>
+                <h4 className="text-sm font-medium">{item.user.title}</h4>
+              </div>
             </td>
             <td className={tdclass}>12 May, 2021</td>
             <td className={tdclass}>
@@ -465,7 +473,6 @@ export function DoctorsTable({ data, functions, doctor }) {
     </table>
   );
 }
-
 
 // appointment table
 export function AppointmentTable({ data, functions, doctor }) {
