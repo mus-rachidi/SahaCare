@@ -402,66 +402,94 @@ export function PatientTable({ data, functions, used }) {
   );
 }
 
+export function DoctorsTable({ functions }) {
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-// doctor table
-export function DoctorsTable({ data, functions, doctor }) {
+  // Fetch doctors from the backend
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/doctors'); // Adjust the API endpoint accordingly
+        setDoctors(response.data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
+
+  // Function to delete a doctor
+  const deleteDoctor = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this doctor?');
+    if (confirmDelete) {
+      try {
+        const response = await axios.delete(`http://localhost:5000/api/doctors/${id}`);
+        alert(response.data.message); // Show success message
+        setDoctors(doctors.filter((doctor) => doctor.id !== id));
+      } catch (err) {
+        console.error('Error deleting doctor:', err);
+        alert('Error deleting doctor'); // Show error message
+      }
+    }
+  };
+
   const DropDown1 = [
     {
       title: 'View',
       icon: FiEye,
       onClick: (data) => {
-        functions.preview(data);
+        functions.preview(data.id);
       },
     },
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
-      onClick: () => {
-        toast.error('This feature is not available yet');
+      onClick: (doctor) => {
+        deleteDoctor(doctor.id);
       },
     },
   ];
+
+  const thclasse = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
+  const tdclasse = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+
+  if (loading) {
+    return <p>Loading doctors...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
+
   return (
     <table className="table-auto w-full">
       <thead className="bg-dry rounded-md overflow-hidden">
         <tr>
-          <th className={thclass}>#</th>
-          <th className={thclass}>{doctor ? 'Doctor' : 'Receptionist'}</th>
-          <th className={thclass}>Created At</th>
-          <th className={thclass}>Phone</th>
-          <th className={thclass}>Title</th>
-          <th className={thclass}>Email</th>
-          <th className={thclass}>Actions</th>
+          <th className={thclasse}>ID</th>
+          <th className={thclasse}>Full Name</th>
+          <th className={thclasse}>Phone</th>
+          <th className={thclasse}>Created At</th>
+          <th className={thclasse}>Title</th>
+          <th className={thclasse}>Email</th>
+          <th className={thclasse}>Actions</th>
         </tr>
       </thead>
       <tbody>
-        {data.map((item, index) => (
-          <tr
-            key={item.id}
-            className="border-b border-border hover:bg-greyed transitions"
-          >
-            <td className={tdclass}>{index + 1}</td>
-            <td className={tdclass}>
-              <div className="flex gap-4 items-center">
-                <span className="w-12">
-                  {/* <img
-                    // src={item.user.image}
-                    alt={item.user.title}
-                    className="w-full h-12 rounded-full object-cover border border-border"
-                  /> */}
-                </span>
-                <h4 className="text-sm font-medium">{item.user.title}</h4>
-              </div>
-            </td>
-            <td className={tdclass}>12 May, 2021</td>
-            <td className={tdclass}>
-              <p className="text-textGray">{item.user.phone}</p>
-            </td>
-            <td className={tdclass}>{item.title}</td>
-            <td className={tdclass}>{item.user.email}</td>
-
-            <td className={tdclass}>
-              <MenuSelect datas={DropDown1} item={item}>
+        {doctors.map((doctor) => (
+          <tr key={doctor.id} className="border-b border-border hover:bg-greyed transitions">
+            <td className={tdclasse}>{doctor.id}</td>
+            <td className={tdclasse}>{doctor.fullName}</td>
+            <td className={tdclasse}>{doctor.phone}</td>
+            <td className={tdclasse}>{new Date(doctor.created_at).toLocaleDateString()}</td>
+            <td className={tdclasse}>{doctor.title}</td>
+            <td className={tdclasse}>{doctor.email}</td>
+            <td className={tdclasse}>
+              <MenuSelect datas={DropDown1} item={doctor}>
                 <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
                   <BiDotsHorizontalRounded />
                 </div>
@@ -473,6 +501,108 @@ export function DoctorsTable({ data, functions, doctor }) {
     </table>
   );
 }
+
+
+export function ReceptionsTable({ functions }) {
+  const [receptions, setReceptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch receptions from the backend
+  useEffect(() => {
+    const fetchReceptions = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/receptions'); // Adjust the API endpoint accordingly
+        setReceptions(response.data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReceptions();
+  }, []);
+
+  // Function to delete a reception
+  const deleteReception = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this reception?');
+    if (confirmDelete) {
+      try {
+        const response = await axios.delete(`http://localhost:5000/api/receptions/${id}`);
+        alert(response.data.message); // Show success message
+        setReceptions(receptions.filter((reception) => reception.id !== id));
+      } catch (err) {
+        console.error('Error deleting reception:', err);
+        alert('Error deleting reception'); // Show error message
+      }
+    }
+  };
+
+  const DropDown1 = [
+    {
+      title: 'View',
+      icon: FiEye,
+      onClick: (data) => {
+        functions.preview(data.id);
+      },
+    },
+    {
+      title: 'Delete',
+      icon: RiDeleteBin6Line,
+      onClick: (reception) => {
+        deleteReception(reception.id);
+      },
+    },
+  ];
+
+  const thclasse = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
+  const tdclasse = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+
+  if (loading) {
+    return <p>Loading receptions...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
+
+  return (
+    <table className="table-auto w-full">
+      <thead className="bg-dry rounded-md overflow-hidden">
+        <tr>
+          <th className={thclasse}>ID</th>
+          <th className={thclasse}>Full Name</th>
+          <th className={thclasse}>Phone</th>
+          <th className={thclasse}>Created At</th>
+          <th className={thclasse}>Title</th>
+          <th className={thclasse}>Email</th>
+          <th className={thclasse}>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {receptions.map((reception) => (
+          <tr key={reception.id} className="border-b border-border hover:bg-greyed transitions">
+            <td className={tdclasse}>{reception.id}</td>
+            <td className={tdclasse}>{reception.fullName}</td>
+            <td className={tdclasse}>{reception.phone}</td>
+            <td className={tdclasse}>{new Date(reception.created_at).toLocaleDateString()}</td>
+            <td className={tdclasse}>{reception.title}</td>
+            <td className={tdclasse}>{reception.email}</td>
+            <td className={tdclasse}>
+              <MenuSelect datas={DropDown1} item={reception}>
+                <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                  <BiDotsHorizontalRounded />
+                </div>
+              </MenuSelect>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 
 // appointment table
 export function AppointmentTable({ data, functions, doctor }) {

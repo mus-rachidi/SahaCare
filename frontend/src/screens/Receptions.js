@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import axios from 'axios';
 import { MdOutlineCloudDownload } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import { BiPlus } from 'react-icons/bi';
 import Layout from '../Layout';
 import { Button } from '../components/Form';
-import { DoctorsTable } from '../components/Tables';
-import AddDoctorModal from '../components/Modals/AddDoctorModal';
-import { receptionsData } from '../components/Datas';
+import { ReceptionsTable } from '../components/Tables';
+import AddReceptionModal from '../components/Modals/AddReceptionModal';
 
 function Receptions() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [data, setData] = React.useState({});
+  const [data, setData] = React.useState([]);
+  const [loading, setLoading] = React.useState(true); // Add loading state
+  const [error, setError] = React.useState(null); // Add error state
 
   const onCloseModal = () => {
     setIsOpen(false);
@@ -22,12 +24,37 @@ function Receptions() {
     setData(data);
   };
 
+  // Fetch receptions data from the backend
+  useEffect(() => {
+    const fetchReceptions = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/receptions'); // Adjust the endpoint as necessary
+        setData(response.data); // Set the data state with the fetched data
+      } catch (err) {
+        setError(err.message); // Set the error state
+        toast.error('Failed to load receptions data'); // Show error toast
+      } finally {
+        setLoading(false); // Set loading to false after fetching
+      }
+    };
+
+    fetchReceptions();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>; // Show loading message
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>; // Show error message
+  }
+
   return (
     <Layout>
       {
         // add doctor modal
         isOpen && (
-          <AddDoctorModal
+          <AddReceptionModal
             closeModal={onCloseModal}
             isOpen={isOpen}
             doctor={false}
@@ -52,7 +79,6 @@ function Receptions() {
         className="bg-white my-8 rounded-xl border-[1px] border-border p-5"
       >
         {/* datas */}
-
         <div className="grid md:grid-cols-6 sm:grid-cols-2 grid-cols-1 gap-2">
           <div className="md:col-span-5 grid lg:grid-cols-4 items-center gap-6">
             <input
@@ -72,9 +98,9 @@ function Receptions() {
           />
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
-          <DoctorsTable
+          <ReceptionsTable
             doctor={false}
-            data={receptionsData}
+            data={data} // Use the fetched data
             functions={{
               preview: preview,
             }}

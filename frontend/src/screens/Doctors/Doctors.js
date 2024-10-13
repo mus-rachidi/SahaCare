@@ -63,12 +63,34 @@ function Doctors() {
 
           {/* export */}
           <Button
-            label="Export"
-            Icon={MdOutlineCloudDownload}
-            onClick={() => {
-              toast.error('Exporting is not available yet');
-            }}
-          />
+    label="Export"
+    Icon={MdOutlineCloudDownload}
+    onClick={() => {
+        // Make a GET request to download the CSV
+        fetch('/api/doctors/export') // Adjust the URL according to your server
+            .then((response) => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.blob();
+            })
+            .then((blob) => {
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'doctors.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                toast.success('CSV exported successfully!');
+            })
+            .catch((error) => {
+                toast.error('Failed to export CSV');
+                console.error('Export error:', error);
+            });
+    }}
+/>
+
+
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
           <DoctorsTable

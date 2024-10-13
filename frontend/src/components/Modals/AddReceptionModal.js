@@ -8,19 +8,18 @@ import { toast } from 'react-hot-toast';
 import Access from '../Access';
 import Uploader from '../Uploader';
 
-function AddDoctorModal({ closeModal, isOpen, doctor }) {
-  const [title, setTitle] = useState(sortsDatas.title[0]);
+function AddReceptionModal({ closeModal, isOpen, receptionist }) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [image, setImage] = useState(''); // Handle image upload
-  const [access, setAccess] = useState({});
+  const [title, setTitle] = useState(sortsDatas.title[0]); // Assuming you have a similar data structure
 
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/doctors', {
+      const response = await fetch('http://localhost:5000/api/receptions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,16 +36,16 @@ function AddDoctorModal({ closeModal, isOpen, doctor }) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to add doctor');
+        toast.error(errorData.error || 'Failed to add receptionist');
         return;
       }
 
-      const newDoctor = await response.json();
-      toast.success('Doctor added successfully');
-      console.log('New Doctor:', newDoctor);
+      const newReceptionist = await response.json();
+      toast.success('Receptionist added successfully');
+      console.log('New Receptionist:', newReceptionist);
       closeModal(); // Close the modal on success
     } catch (error) {
-      toast.error('An error occurred while adding the doctor');
+      toast.error('An error occurred while adding the receptionist');
       console.error(error);
     }
   };
@@ -55,7 +54,7 @@ function AddDoctorModal({ closeModal, isOpen, doctor }) {
     <Modal
       closeModal={closeModal}
       isOpen={isOpen}
-      title={doctor ? 'Edit Doctor' : 'Add Doctor'}
+      title={receptionist ? 'Edit Receptionist' : 'Add Receptionist'}
       width={'max-w-3xl'}
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -112,21 +111,16 @@ function AddDoctorModal({ closeModal, isOpen, doctor }) {
               className="p-2 border border-gray-300 rounded"
             />
           </label>
-        
-
-        <label>
-          <span className="text-sm">Password</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="p-2 border border-gray-300 rounded"
-          />
-        </label>
-</div>
-        <div className="w-full">
-          <Access setAccess={setAccess} />
+          <label>
+            <span className="text-sm">Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="p-2 border border-gray-300 rounded"
+            />
+          </label>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4 w-full">
@@ -143,4 +137,4 @@ function AddDoctorModal({ closeModal, isOpen, doctor }) {
   );
 }
 
-export default AddDoctorModal;
+export default AddReceptionModal;

@@ -1,29 +1,30 @@
-// // routes/doctors.js
+// routes/doctors.js
 
-// const express = require('express');
-// const { 
-//     getAllDoctors, 
-//     getDoctorById, 
-//     createDoctor, 
-//     updateDoctor, 
-//     deleteDoctor 
-// } = require('../controllers/doctorsController');
+const express = require('express');
+const { 
+    getAllDoctors, 
+    getDoctorById, 
+    createDoctor, 
+    updateDoctor, 
+    deleteDoctor,
+    exportDoctorsToCSV
+} = require('../controllers/doctorsController');
 
-// const router = express.Router();
+const router = express.Router();
 
-// // GET all doctors
-// router.get('/doctors/', getAllDoctors);
+router.get('/doctors/export', exportDoctorsToCSV);// GET all doctors
+router.get('/doctors/', getAllDoctors);
 
-// // GET a specific doctor by ID
-// router.get('/doctors/:id', getDoctorById);
+// GET a specific doctor by ID
+router.get('/doctors/:id', getDoctorById);
 
-// // POST a new doctor
-// router.post('/doctors/', createDoctor);
+// POST a new doctor
+router.post('/doctors/', createDoctor);
 
-// // PUT update a doctor by ID
-// router.put('/doctors/:id', updateDoctor);
+// PUT update a doctor by ID
+router.put('/doctors/:id', updateDoctor);
 
-// // DELETE a doctor by ID
-// router.delete('/doctors/:id', deleteDoctor);
+// DELETE a doctor by ID
+router.delete('/doctors/:id', deleteDoctor);
 
-// module.exports = router;
+module.exports = router;
