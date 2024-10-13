@@ -40,3 +40,24 @@ CREATE TABLE IF NOT EXISTS Receptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     image VARCHAR(255)
 );
+
+
+CREATE TABLE services (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    date DATE NOT NULL,
+    status ENUM('enable', 'disable') NOT NULL
+);
+
+-- Create the Medicines table
+DROP TABLE IF EXISTS Medicines;
+
+CREATE TABLE Medicines (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) NOT NULL,  -- Changed to VARCHAR
+    inStock BOOLEAN NOT NULL,
+    measure VARCHAR(50) NOT NULL
+);

@@ -17,7 +17,7 @@ function Sidebar() {
     <div className="bg-white xl:shadow-lg py-6 px-4 xl:h-screen w-full border-r border-border">
       <Link to="/">
         <img
-          src="/images/logo.png"
+          src="/images/logo9.png"
           alt="logo"
           className="w-2/4 h-12 ml-4 object-contain"
         />

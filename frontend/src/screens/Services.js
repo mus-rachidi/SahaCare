@@ -1,55 +1,63 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MdOutlineCloudDownload } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import { BiChevronDown, BiPlus } from 'react-icons/bi';
 import Layout from '../Layout';
 import { Button, Select } from '../components/Form';
 import { ServiceTable } from '../components/Tables';
-import { servicesData, sortsDatas } from '../components/Datas';
 import AddEditServiceModal from '../components/Modals/AddEditServiceModal';
+import axios from 'axios';
+import { sortsDatas } from '../components/Datas';
 
 function Services() {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [data, setData] = React.useState({});
-  const [status, setStatus] = React.useState(sortsDatas.service[0]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [data, setData] = useState([]);
+  const [status, setStatus] = useState(sortsDatas.service[0]);
+  const [serviceData, setServiceData] = useState({});
+
+  const fetchServices = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/services');
+      setData(response.data); // Assumes your backend sends the services data as an array
+    } catch (error) {
+      toast.error('Failed to fetch services');
+    }
+  };
 
   const onCloseModal = () => {
     setIsOpen(false);
-    setData({});
+    setServiceData({});
+    fetchServices(); // Refresh after closing modal
   };
 
   const onEdit = (datas) => {
     setIsOpen(true);
-    setData(datas);
+    setServiceData(datas);
   };
+
+  useEffect(() => {
+    fetchServices(); // Fetch services when the component mounts
+  }, []);
 
   return (
     <Layout>
       {isOpen && (
         <AddEditServiceModal
-          datas={data}
+          datas={serviceData}
           isOpen={isOpen}
           closeModal={onCloseModal}
         />
       )}
-      {/* add button */}
+      {/* Add Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="w-16 animate-bounce h-16 border border-border z-50 bg-subMain text-white rounded-full flex-colo fixed bottom-8 right-12 button-fb"
+        className="w-16 h-16 border border-border z-50 bg-subMain text-white rounded-full flex-colo fixed bottom-8 right-12 button-fb"
       >
         <BiPlus className="text-2xl" />
       </button>
-      {/*  */}
-      <h1 className="text-xl font-semibold">Services</h1>
-      <div
-        data-aos="fade-up"
-        data-aos-duration="1000"
-        data-aos-delay="100"
-        data-aos-offset="200"
-        className="bg-white my-8 rounded-xl border-[1px] border-border p-5"
-      >
-        {/* datas */}
 
+      <h1 className="text-xl font-semibold">Services</h1>
+      <div className="bg-white my-8 rounded-xl border-[1px] border-border p-5">
         <div className="grid md:grid-cols-6 grid-cols-1 gap-2">
           <div className="md:col-span-5 grid lg:grid-cols-4 xs:grid-cols-2 items-center gap-2">
             <input
@@ -68,7 +76,7 @@ function Services() {
             </Select>
           </div>
 
-          {/* export */}
+          {/* Export */}
           <Button
             label="Export"
             Icon={MdOutlineCloudDownload}
@@ -77,8 +85,9 @@ function Services() {
             }}
           />
         </div>
+
         <div className="mt-8 w-full overflow-x-scroll">
-          <ServiceTable data={servicesData.slice(1, 100)} onEdit={onEdit} />
+          <ServiceTable data={data} onEdit={onEdit} />
         </div>
       </div>
     </Layout>

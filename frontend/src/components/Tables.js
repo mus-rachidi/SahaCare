@@ -186,24 +186,24 @@ export function InvoiceTable({ data }) {
   );
 }
 
-// prescription table
 export function MedicineTable({ data, onEdit }) {
   const DropDown1 = [
     {
       title: 'Edit',
       icon: FiEdit,
       onClick: (item) => {
-        onEdit(item);
+        onEdit(item); // Call the onEdit function passed as a prop
       },
     },
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
       onClick: () => {
-        toast.error('This feature is not available yet');
+        toast.error('This feature is not available yet'); // Placeholder for delete action
       },
     },
   ];
+
   return (
     <table className="table-auto w-full">
       <thead className="bg-dry rounded-md overflow-hidden">
@@ -219,10 +219,10 @@ export function MedicineTable({ data, onEdit }) {
         </tr>
       </thead>
       <tbody>
-        {data.map((item, index) => (
+        {data.map((item) => (
           <tr
             key={item.id}
-            className="border-b border-border hover:bg-greyed transitions"
+            className="border-b border-border hover:bg-greyed transition"
           >
             <td className={tdclass}>
               <h4 className="text-sm font-medium">{item?.name}</h4>
@@ -230,10 +230,11 @@ export function MedicineTable({ data, onEdit }) {
             <td className={`${tdclass} font-semibold`}>{item?.price}</td>
             <td className={tdclass}>
               <span
-                className={`text-xs font-medium ${item?.status === 'Out of stock'
+                className={`text-xs font-medium ${
+                  item?.status === 'Out of stock'
                     ? 'text-red-600'
                     : 'text-green-600'
-                  }`}
+                }`}
               >
                 {item?.status}
               </span>
@@ -255,12 +256,40 @@ export function MedicineTable({ data, onEdit }) {
 }
 
 // service table
-export function ServiceTable({ data, onEdit }) {
-  const DropDown1 = [
+
+export  function ServiceTable({ onEdit }) {
+  const [data, setData] = useState([]);
+
+  // Fetch service data from backend
+  const fetchServices = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/services'); // Assuming your backend is running on the same server
+      setData(response.data);
+    } catch (error) {
+      toast.error('Error fetching services');
+    }
+  };
+
+  // Delete service
+  const deleteService = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/services/${id}`);
+      toast.success('Service deleted successfully');
+      fetchServices(); // Refresh the list after deletion
+    } catch (error) {
+      toast.error('Error deleting service');
+    }
+  };
+
+  useEffect(() => {
+    fetchServices();
+  }, []); // Fetch services when the component mounts
+
+  const DropDown1 = (item) => [
     {
       title: 'Edit',
       icon: FiEdit,
-      onClick: (item) => {
+      onClick: () => {
         onEdit(item);
       },
     },
@@ -268,10 +297,13 @@ export function ServiceTable({ data, onEdit }) {
       title: 'Delete',
       icon: RiDeleteBin6Line,
       onClick: () => {
-        toast.error('This feature is not available yet');
+        if (window.confirm('Are you sure you want to delete this service?')) {
+          deleteService(item.id); // Call delete function
+        }
       },
     },
   ];
+
   return (
     <table className="table-auto w-full">
       <thead className="bg-dry rounded-md overflow-hidden">
@@ -286,26 +318,20 @@ export function ServiceTable({ data, onEdit }) {
         </tr>
       </thead>
       <tbody>
-        {data.map((item, index) => (
-          <tr
-            key={item.id}
-            className="border-b border-border hover:bg-greyed transitions"
-          >
+        {data.map((item) => (
+          <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
             <td className={tdclass}>
               <h4 className="text-sm font-medium">{item?.name}</h4>
             </td>
-            <td className={tdclass}>{item?.date}</td>
+            <td className={tdclass}>{new Date(item?.date).toLocaleDateString()}</td>
             <td className={`${tdclass} font-semibold`}>{item?.price}</td>
             <td className={tdclass}>
-              <span
-                className={`text-xs font-medium ${!item?.status ? 'text-red-600' : 'text-green-600'
-                  }`}
-              >
-                {!item?.status ? 'Disabled' : 'Enabled'}
+              <span className={`text-xs font-medium ${item?.status === 'disable' ? 'text-red-600' : 'text-green-600'}`}>
+                {item?.status === 'disable' ? 'Disabled' : 'Enabled'}
               </span>
             </td>
             <td className={tdclass}>
-              <MenuSelect datas={DropDown1} item={item}>
+              <MenuSelect datas={DropDown1(item)} item={item}>
                 <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
                   <BiDotsHorizontalRounded />
                 </div>

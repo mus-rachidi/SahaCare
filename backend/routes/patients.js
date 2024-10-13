@@ -10,3 +10,4 @@ router.get("/patients/:id", getPatientById);
 router.get("/counts", getPatientCounts);
 
 module.exports = router;
+

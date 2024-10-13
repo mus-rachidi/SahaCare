@@ -1,17 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import Modal from './Modal';
-import { Button, Input, Switchi, Textarea } from '../Form';
+import { Button, Switchi, Textarea } from '../Form'; // Removed Input from here
 import { HiOutlineCheckCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
+import axios from 'axios';
 
 function AddEditServiceModal({ closeModal, isOpen, datas }) {
-  const [check, setCheck] = useState(false);
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState(0);
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState(true);
 
   useEffect(() => {
     if (datas?.name) {
-      setCheck(datas?.status);
+      setName(datas?.name);
+      setPrice(datas?.price);
+      setDescription(datas?.description);
+      setStatus(datas?.status === 'enable'); // Use 'enable' instead of 'enabled'
     }
   }, [datas]);
+
+  const handleSave = async () => {
+    try {
+      const url = datas?.id 
+        ? `http://localhost:5000/api/services/${datas.id}` 
+        : 'http://localhost:5000/api/services';
+
+      const method = datas?.id ? 'PUT' : 'POST';
+      const body = JSON.stringify({
+        name,
+        price,
+        date: '2024-10-12', // Adjust this date as necessary
+        status: status ? 'enable' : 'disable', // Correct values
+      });
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body,
+      });
+
+      if (response.ok) {
+        toast.success(datas?.id ? 'Service updated successfully' : 'Service created successfully');
+        closeModal();
+      } else {
+        const errorData = await response.json(); // Log error details
+        console.error('Error details:', errorData);
+        throw new Error('Failed to save service');
+      }
+    } catch (error) {
+      toast.error('Failed to save service');
+    }
+  };
 
   return (
     <Modal
@@ -21,38 +63,49 @@ function AddEditServiceModal({ closeModal, isOpen, datas }) {
       width={'max-w-3xl'}
     >
       <div className="flex-colo gap-6">
-        <Input
-          label="Service Name"
-          color={true}
-          placeholder={datas?.name && datas.name}
-        />
+        {/* Changed Input to input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Service Name</label>
+          <input
+            type="text"
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
 
-        <Input
-          label="Price (Tsh)"
-          type="number"
-          color={true}
-          placeholder={datas?.price ? datas.price : 0}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Price (Tsh)</label>
+          <input
+            type="number"
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+        </div>
 
-        {/* des */}
+        {/* Description */}
         <Textarea
           label="Description"
-          placeholder="Write description here..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           color={true}
           rows={5}
         />
-        {/* switch */}
+
+        {/* Status Switch */}
         <div className="flex items-center gap-2 w-full">
           <Switchi
             label="Status"
-            checked={check}
-            onChange={() => setCheck(!check)}
+            checked={status}
+            onChange={() => setStatus(!status)}
           />
-          <p className={`text-sm ${check ? 'text-subMain' : 'text-textGray'}`}>
-            {check ? 'Enabled' : 'Disabled'}
+          <p className={`text-sm ${status ? 'text-subMain' : 'text-textGray'}`}>
+            {status ? 'Enabled' : 'Disabled'}
           </p>
         </div>
-        {/* buttones */}
+
+        {/* Buttons */}
         <div className="grid sm:grid-cols-2 gap-4 w-full">
           <button
             onClick={closeModal}
@@ -63,9 +116,7 @@ function AddEditServiceModal({ closeModal, isOpen, datas }) {
           <Button
             label="Save"
             Icon={HiOutlineCheckCircle}
-            onClick={() => {
-              toast.error('This feature is not available yet');
-            }}
+            onClick={handleSave}
           />
         </div>
       </div>

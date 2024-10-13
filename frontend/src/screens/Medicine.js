@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios'; // Import axios
 import { MdOutlineCloudDownload } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import { BiChevronDown, BiPlus } from 'react-icons/bi';
 import Layout from '../Layout';
 import { Button, Select } from '../components/Form';
 import { MedicineTable } from '../components/Tables';
-import { medicineData, sortsDatas } from '../components/Datas';
+import { sortsDatas } from '../components/Datas';
 import AddEditMedicineModal from '../components/Modals/AddEditMedicine';
 
 function Medicine() {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [data, setData] = React.useState({});
-  const [status, setStatus] = React.useState(sortsDatas.stocks[0]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [data, setData] = useState({});
+  const [medicines, setMedicines] = useState([]); // State for storing medicines
+  const [status, setStatus] = useState(sortsDatas.stocks[0]);
+
+  useEffect(() => {
+    fetchMedicines(); // Fetch medicines when the component mounts
+  }, []);
+
+  const fetchMedicines = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/medicines');
+      setMedicines(response.data); // Store the fetched medicines
+    } catch (error) {
+      toast.error('Failed to fetch medicines');
+    }
+  };
 
   const onCloseModal = () => {
     setIsOpen(false);
@@ -23,6 +38,23 @@ function Medicine() {
     setData(datas);
   };
 
+  const addOrUpdateMedicine = async (medicine) => {
+    try {
+      if (medicine.id) {
+        // If the medicine has an id, it's an update
+        await axios.put(`http://localhost:5000/api/medicines/${medicine.id}`, medicine);
+      } else {
+        // If it doesn't have an id, it's a new entry
+        await axios.post('http://localhost:5000/api/medicines', medicine);
+      }
+      fetchMedicines(); // Refresh the list of medicines
+      onCloseModal(); // Close the modal
+      toast.success('Medicine saved successfully');
+    } catch (error) {
+      toast.error('Failed to save medicine');
+    }
+  };
+
   return (
     <Layout>
       {isOpen && (
@@ -30,6 +62,7 @@ function Medicine() {
           datas={data}
           isOpen={isOpen}
           closeModal={onCloseModal}
+          addOrUpdateMedicine={addOrUpdateMedicine} // Pass the function to the modal
         />
       )}
       {/* add button */}
@@ -39,7 +72,6 @@ function Medicine() {
       >
         <BiPlus className="text-2xl" />
       </button>
-      {/*  */}
       <h1 className="text-xl font-semibold">Medicine</h1>
       <div
         data-aos="fade-up"
@@ -48,8 +80,6 @@ function Medicine() {
         data-aos-offset="200"
         className="bg-white my-8 rounded-xl border-[1px] border-border p-5"
       >
-        {/* datas */}
-
         <div className="grid md:grid-cols-6 grid-cols-1 gap-2">
           <div className="md:col-span-5 grid lg:grid-cols-4 xs:grid-cols-2 items-center gap-2">
             <input
@@ -67,8 +97,6 @@ function Medicine() {
               </div>
             </Select>
           </div>
-
-          {/* export */}
           <Button
             label="Export"
             Icon={MdOutlineCloudDownload}
@@ -78,7 +106,7 @@ function Medicine() {
           />
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
-          <MedicineTable data={medicineData} onEdit={onEdit} />
+          <MedicineTable data={medicines} onEdit={onEdit} />
         </div>
       </div>
     </Layout>
