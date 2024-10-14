@@ -260,11 +260,14 @@ export function MedicineTable({ data, onEdit, onDelete }) {
 }
 
 
-export function ServiceTable({ data, onEdit }) {
+export function ServiceTable({ data, onEdit, setData }) {
   const deleteService = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/services/${id}`);
       toast.success('Service deleted successfully');
+      
+      // Update the state by filtering out the deleted service
+      setData((prevData) => prevData.filter(service => service.id !== id));
     } catch (error) {
       toast.error('Error deleting service');
     }
@@ -292,10 +295,10 @@ export function ServiceTable({ data, onEdit }) {
   return (
     <div style={{
       overflowY: 'auto', 
-      maxHeight: '400px',  // Adjust this height based on your design needs
-      border: '1px solid #e2e8f0', // Example border style
-      borderRadius: '0.375rem', // For rounded corners
-      padding: '1rem', // Padding around the table
+      maxHeight: '400px',
+      border: '1px solid #e2e8f0',
+      borderRadius: '0.375rem',
+      padding: '1rem',
     }}>
       <table className="table-auto w-full">
         <thead className="bg-dry rounded-md overflow-hidden">
@@ -339,8 +342,7 @@ export function ServiceTable({ data, onEdit }) {
 
 
 // patient table
-   
-export function PatientTable({ data, functions, used }) {
+export function PatientTable({ data, setData, functions, used }) {
   const DropDown1 = !used
     ? [
         {
@@ -358,7 +360,10 @@ export function PatientTable({ data, functions, used }) {
               try {
                 const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
                 alert(response.data.message); // Show success message
-                // Optionally, you can call a function to refresh the data or update the state here
+                
+                // Remove the deleted item from the data state
+                setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
+                
               } catch (error) {
                 console.error('Error deleting patient:', error);
                 alert('Error deleting patient'); // Show error message
@@ -421,6 +426,7 @@ export function PatientTable({ data, functions, used }) {
     </table>
   );
 }
+
 
 export function DoctorsTable({ functions }) {
   const [doctors, setDoctors] = useState([]);

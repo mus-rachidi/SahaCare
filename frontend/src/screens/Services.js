@@ -10,7 +10,6 @@ import { ServiceTable } from '../components/Tables';
 import AddEditServiceModal from '../components/Modals/AddEditServiceModal';
 import axios from 'axios';
 import { sortsDatas } from '../components/Datas';
-
 function Services() {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState([]);
@@ -20,7 +19,7 @@ function Services() {
   const fetchServices = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/services');
-      setData(response.data); // Assumes your backend sends the services data as an array
+      setData(response.data);
     } catch (error) {
       toast.error('Failed to fetch services');
     }
@@ -29,7 +28,7 @@ function Services() {
   const onCloseModal = () => {
     setIsOpen(false);
     setServiceData({});
-    fetchServices(); // Refresh after closing modal
+    fetchServices();
   };
 
   const onEdit = (datas) => {
@@ -38,7 +37,7 @@ function Services() {
   };
 
   useEffect(() => {
-    fetchServices(); // Fetch services when the component mounts
+    fetchServices();
   }, []);
 
   return (
@@ -50,7 +49,6 @@ function Services() {
           closeModal={onCloseModal}
         />
       )}
-      {/* Add Button */}
       <button
         onClick={() => setIsOpen(true)}
         className="w-16 h-16 border border-border z-50 bg-subMain text-white rounded-full flex items-center justify-center fixed bottom-8 right-12 hover:shadow-lg transition"
@@ -78,7 +76,6 @@ function Services() {
             </Select>
           </div>
 
-          {/* Export Button */}
           <Button
             label="Export"
             Icon={MdOutlineCloudDownload}
@@ -89,7 +86,7 @@ function Services() {
         </div>
 
         <div className="mt-8 w-full overflow-x-auto">
-          <ServiceTable data={data} onEdit={onEdit} />
+          <ServiceTable data={data} onEdit={onEdit} setData={setData} />
         </div>
       </div>
     </Layout>
