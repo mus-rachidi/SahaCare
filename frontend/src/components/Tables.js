@@ -186,7 +186,7 @@ export function InvoiceTable({ data }) {
   );
 }
 
-export function MedicineTable({ data, onEdit }) {
+export function MedicineTable({ data, onEdit, onDelete }) {
   const DropDown1 = [
     {
       title: 'Edit',
@@ -198,92 +198,77 @@ export function MedicineTable({ data, onEdit }) {
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
-      onClick: () => {
-        toast.error('This feature is not available yet'); // Placeholder for delete action
+      onClick: (item) => {
+        if (window.confirm(`Are you sure you want to delete ${item.name}?`)) {
+          onDelete(item.id); // Call the onDelete function passed as a prop
+        }
       },
     },
   ];
 
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
+  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+
   return (
-    <table className="table-auto w-full">
-      <thead className="bg-dry rounded-md overflow-hidden">
-        <tr>
-          <th className={thclass}>Name</th>
-          <th className={thclass}>
-            Price <span className="text-xs font-light">(Tsh)</span>
-          </th>
-          <th className={thclass}>Status</th>
-          <th className={thclass}>InStock</th>
-          <th className={thclass}>Measure</th>
-          <th className={thclass}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item) => (
-          <tr
-            key={item.id}
-            className="border-b border-border hover:bg-greyed transition"
-          >
-            <td className={tdclass}>
-              <h4 className="text-sm font-medium">{item?.name}</h4>
-            </td>
-            <td className={`${tdclass} font-semibold`}>{item?.price}</td>
-            <td className={tdclass}>
-              <span
-                className={`text-xs font-medium ${
-                  item?.status === 'Out of stock'
-                    ? 'text-red-600'
-                    : 'text-green-600'
-                }`}
-              >
-                {item?.status}
-              </span>
-            </td>
-            <td className={tdclass}>{item?.stock}</td>
-            <td className={tdclass}>{item?.measure}</td>
-            <td className={tdclass}>
-              <MenuSelect datas={DropDown1} item={item}>
-                <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                  <BiDotsHorizontalRounded />
-                </div>
-              </MenuSelect>
-            </td>
+    <div style={{
+      overflowY: 'auto',
+      maxHeight: '400px',
+      border: '1px solid #e2e8f0',
+      borderRadius: '0.375rem',
+      padding: '1rem',
+    }}>
+      <table className="table-auto w-full">
+        <thead className="bg-dry rounded-md overflow-hidden">
+          <tr>
+            <th className={thclass}>Name</th>
+            <th className={thclass}>
+              Price <span className="text-xs font-light">(Tsh)</span>
+            </th>
+            <th className={thclass}>Status</th>
+            <th className={thclass}>In Stock</th>
+            <th className={thclass}>Measure</th>
+            <th className={thclass}>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr key={item.id} className="border-b border-border hover:bg-greyed transition">
+              <td className={tdclass}>
+                <h4 className="text-sm font-medium">{item.name}</h4>
+              </td>
+              <td className={`${tdclass} font-semibold`}>{item.price}</td>
+              <td className={tdclass}>
+                <span className={`text-xs font-medium ${item.status === 'Out of stock' ? 'text-red-600' : 'text-green-600'}`}>
+                  {item.status}
+                </span>
+              </td>
+              <td className={tdclass}>{item.stock}</td>
+              <td className={tdclass}>{item.measure}</td>
+              <td className={tdclass}>
+                <MenuSelect datas={DropDown1} item={item}>
+                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                    <BiDotsHorizontalRounded />
+                  </div>
+                </MenuSelect>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-// service table
 
-export  function ServiceTable({ onEdit }) {
-  const [data, setData] = useState([]);
-
-  // Fetch service data from backend
-  const fetchServices = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/services'); // Assuming your backend is running on the same server
-      setData(response.data);
-    } catch (error) {
-      toast.error('Error fetching services');
-    }
-  };
-
-  // Delete service
+export function ServiceTable({ data, onEdit }) {
   const deleteService = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/services/${id}`);
       toast.success('Service deleted successfully');
-      fetchServices(); // Refresh the list after deletion
     } catch (error) {
       toast.error('Error deleting service');
     }
   };
-
-  useEffect(() => {
-    fetchServices();
-  }, []); // Fetch services when the component mounts
 
   const DropDown1 = (item) => [
     {
@@ -298,51 +283,60 @@ export  function ServiceTable({ onEdit }) {
       icon: RiDeleteBin6Line,
       onClick: () => {
         if (window.confirm('Are you sure you want to delete this service?')) {
-          deleteService(item.id); // Call delete function
+          deleteService(item.id);
         }
       },
     },
   ];
 
   return (
-    <table className="table-auto w-full">
-      <thead className="bg-dry rounded-md overflow-hidden">
-        <tr>
-          <th className={thclass}>Name</th>
-          <th className={thclass}>Created At</th>
-          <th className={thclass}>
-            Price <span className="text-xs font-light">(Tsh)</span>
-          </th>
-          <th className={thclass}>Status</th>
-          <th className={thclass}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item) => (
-          <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
-            <td className={tdclass}>
-              <h4 className="text-sm font-medium">{item?.name}</h4>
-            </td>
-            <td className={tdclass}>{new Date(item?.date).toLocaleDateString()}</td>
-            <td className={`${tdclass} font-semibold`}>{item?.price}</td>
-            <td className={tdclass}>
-              <span className={`text-xs font-medium ${item?.status === 'disable' ? 'text-red-600' : 'text-green-600'}`}>
-                {item?.status === 'disable' ? 'Disabled' : 'Enabled'}
-              </span>
-            </td>
-            <td className={tdclass}>
-              <MenuSelect datas={DropDown1(item)} item={item}>
-                <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                  <BiDotsHorizontalRounded />
-                </div>
-              </MenuSelect>
-            </td>
+    <div style={{
+      overflowY: 'auto', 
+      maxHeight: '400px',  // Adjust this height based on your design needs
+      border: '1px solid #e2e8f0', // Example border style
+      borderRadius: '0.375rem', // For rounded corners
+      padding: '1rem', // Padding around the table
+    }}>
+      <table className="table-auto w-full">
+        <thead className="bg-dry rounded-md overflow-hidden">
+          <tr>
+            <th className={thclass}>Name</th>
+            <th className={thclass}>Created At</th>
+            <th className={thclass}>
+              Price <span className="text-xs font-light">(Tsh)</span>
+            </th>
+            <th className={thclass}>Status</th>
+            <th className={thclass}>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
+              <td className={tdclass}>
+                <h4 className="text-sm font-medium">{item?.name}</h4>
+              </td>
+              <td className={tdclass}>{new Date(item?.date).toLocaleDateString()}</td>
+              <td className={`${tdclass} font-semibold`}>{item?.price}</td>
+              <td className={tdclass}>
+                <span className={`text-xs font-medium ${item?.status === 'disable' ? 'text-red-600' : 'text-green-600'}`}>
+                  {item?.status === 'disable' ? 'Disabled' : 'Enabled'}
+                </span>
+              </td>
+              <td className={tdclass}>
+                <MenuSelect datas={DropDown1(item)} item={item}>
+                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                    <BiDotsHorizontalRounded />
+                  </div>
+                </MenuSelect>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
+
 
 // patient table
    
@@ -481,8 +475,8 @@ export function DoctorsTable({ functions }) {
     },
   ];
 
-  const thclasse = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
-  const tdclasse = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
+  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
 
   if (loading) {
     return <p>Loading doctors...</p>;
@@ -493,42 +487,48 @@ export function DoctorsTable({ functions }) {
   }
 
   return (
-    <table className="table-auto w-full">
-      <thead className="bg-dry rounded-md overflow-hidden">
-        <tr>
-          <th className={thclasse}>ID</th>
-          <th className={thclasse}>Full Name</th>
-          <th className={thclasse}>Phone</th>
-          <th className={thclasse}>Created At</th>
-          <th className={thclasse}>Title</th>
-          <th className={thclasse}>Email</th>
-          <th className={thclasse}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {doctors.map((doctor) => (
-          <tr key={doctor.id} className="border-b border-border hover:bg-greyed transitions">
-            <td className={tdclasse}>{doctor.id}</td>
-            <td className={tdclasse}>{doctor.fullName}</td>
-            <td className={tdclasse}>{doctor.phone}</td>
-            <td className={tdclasse}>{new Date(doctor.created_at).toLocaleDateString()}</td>
-            <td className={tdclasse}>{doctor.title}</td>
-            <td className={tdclasse}>{doctor.email}</td>
-            <td className={tdclasse}>
-              <MenuSelect datas={DropDown1} item={doctor}>
-                <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                  <BiDotsHorizontalRounded />
-                </div>
-              </MenuSelect>
-            </td>
+    <div style={{
+      overflowY: 'auto',
+      maxHeight: '400px',  // Adjust this height based on your design needs
+      border: '1px solid #e2e8f0', // Example border style
+      borderRadius: '0.375rem', // For rounded corners
+      padding: '1rem', // Padding around the table
+    }}>
+      <table className="table-auto w-full">
+        <thead className="bg-dry rounded-md overflow-hidden">
+          <tr>
+            <th className={thclass}>ID</th>
+            <th className={thclass}>Full Name</th>
+            <th className={thclass}>Phone</th>
+            <th className={thclass}>Created At</th>
+            <th className={thclass}>Title</th>
+            <th className={thclass}>Email</th>
+            <th className={thclass}>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {doctors.map((doctor) => (
+            <tr key={doctor.id} className="border-b border-border hover:bg-greyed transitions">
+              <td className={tdclass}>{doctor.id}</td>
+              <td className={tdclass}>{doctor.fullName}</td>
+              <td className={tdclass}>{doctor.phone}</td>
+              <td className={tdclass}>{new Date(doctor.created_at).toLocaleDateString()}</td>
+              <td className={tdclass}>{doctor.title}</td>
+              <td className={tdclass}>{doctor.email}</td>
+              <td className={tdclass}>
+                <MenuSelect datas={DropDown1} item={doctor}>
+                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                    <BiDotsHorizontalRounded />
+                  </div>
+                </MenuSelect>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
-
-
 export function ReceptionsTable({ functions }) {
   const [receptions, setReceptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -582,8 +582,8 @@ export function ReceptionsTable({ functions }) {
     },
   ];
 
-  const thclasse = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
-  const tdclasse = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
+  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
 
   if (loading) {
     return <p>Loading receptions...</p>;
@@ -594,41 +594,48 @@ export function ReceptionsTable({ functions }) {
   }
 
   return (
-    <table className="table-auto w-full">
-      <thead className="bg-dry rounded-md overflow-hidden">
-        <tr>
-          <th className={thclasse}>ID</th>
-          <th className={thclasse}>Full Name</th>
-          <th className={thclasse}>Phone</th>
-          <th className={thclasse}>Created At</th>
-          <th className={thclasse}>Title</th>
-          <th className={thclasse}>Email</th>
-          <th className={thclasse}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {receptions.map((reception) => (
-          <tr key={reception.id} className="border-b border-border hover:bg-greyed transitions">
-            <td className={tdclasse}>{reception.id}</td>
-            <td className={tdclasse}>{reception.fullName}</td>
-            <td className={tdclasse}>{reception.phone}</td>
-            <td className={tdclasse}>{new Date(reception.created_at).toLocaleDateString()}</td>
-            <td className={tdclasse}>{reception.title}</td>
-            <td className={tdclasse}>{reception.email}</td>
-            <td className={tdclasse}>
-              <MenuSelect datas={DropDown1} item={reception}>
-                <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                  <BiDotsHorizontalRounded />
-                </div>
-              </MenuSelect>
-            </td>
+    <div style={{
+      overflowY: 'auto',
+      maxHeight: '400px',  // Adjust this height based on your design needs
+      border: '1px solid #e2e8f0', // Example border style
+      borderRadius: '0.375rem', // For rounded corners
+      padding: '1rem', // Padding around the table
+    }}>
+      <table className="table-auto w-full">
+        <thead className="bg-dry rounded-md overflow-hidden">
+          <tr>
+            <th className={thclass}>ID</th>
+            <th className={thclass}>Full Name</th>
+            <th className={thclass}>Phone</th>
+            <th className={thclass}>Created At</th>
+            <th className={thclass}>Title</th>
+            <th className={thclass}>Email</th>
+            <th className={thclass}>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {receptions.map((reception) => (
+            <tr key={reception.id} className="border-b border-border hover:bg-greyed transitions">
+              <td className={tdclass}>{reception.id}</td>
+              <td className={tdclass}>{reception.fullName}</td>
+              <td className={tdclass}>{reception.phone}</td>
+              <td className={tdclass}>{new Date(reception.created_at).toLocaleDateString()}</td>
+              <td className={tdclass}>{reception.title}</td>
+              <td className={tdclass}>{reception.email}</td>
+              <td className={tdclass}>
+                <MenuSelect datas={DropDown1} item={reception}>
+                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                    <BiDotsHorizontalRounded />
+                  </div>
+                </MenuSelect>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
-
 
 // appointment table
 export function AppointmentTable({ data, functions, doctor }) {

@@ -3,18 +3,13 @@ import { MenuDatas } from '../components/Datas';
 import { Link } from 'react-router-dom';
 
 function Sidebar() {
-  // active link
-  const currentPath = (path) => {
-    const currentPath =
-      window.location.pathname.split('/')[1] === path.split('/')[1];
-    if (currentPath) {
-      return path;
-    }
-    return null;
+  // Determine the active link
+  const isActiveLink = (path) => {
+    return window.location.pathname.split('/')[1] === path.split('/')[1];
   };
 
   return (
-    <div className="bg-white xl:shadow-lg py-6 px-4 xl:h-screen w-full border-r border-border">
+    <nav className="bg-white xl:shadow-lg py-6 px-4 xl:h-screen w-full border-r border-border">
       <Link to="/">
         <img
           src="/images/logo9.png"
@@ -22,32 +17,24 @@ function Sidebar() {
           className="w-2/4 h-12 ml-4 object-contain"
         />
       </Link>
-      <div className="flex-colo gap-2 mt-12">
+      <div className="flex flex-col gap-2 mt-12">
         {MenuDatas.map((item, index) => (
           <Link
             to={item.path}
             key={index}
-            className={`
-            ${currentPath(item.path) === item.path ? 'bg-text' : ''}
-            flex gap-4 transitions group items-center w-full p-4 rounded-lg hover:bg-text`}
+            className={`flex gap-4 items-center w-full p-4 rounded-lg transition-colors duration-300 
+              ${isActiveLink(item.path) ? 'bg-text' : 'hover:bg-text'}`}
           >
-            <item.icon
-              className={`text-xl text-subMain
-            `}
-            />
-            <p
-              className={`text-sm font-medium group-hover:text-subMain ${
-                currentPath(item.path) === item.path
-                  ? 'text-subMain'
-                  : 'text-gray-500'
-              }`}
-            >
+            <item.icon className="text-xl text-subMain" />
+            <p className={`text-sm font-medium 
+              ${isActiveLink(item.path) ? 'text-subMain' : 'text-gray-500'} 
+              group-hover:text-subMain transition-colors duration-300`}>
               {item.title}
             </p>
           </Link>
         ))}
       </div>
-    </div>
+    </nav>
   );
 }
 

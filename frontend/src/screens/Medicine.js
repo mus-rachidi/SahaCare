@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 import { MdOutlineCloudDownload } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import { BiChevronDown, BiPlus } from 'react-icons/bi';
@@ -12,17 +12,17 @@ import AddEditMedicineModal from '../components/Modals/AddEditMedicine';
 function Medicine() {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState({});
-  const [medicines, setMedicines] = useState([]); // State for storing medicines
+  const [medicines, setMedicines] = useState([]);
   const [status, setStatus] = useState(sortsDatas.stocks[0]);
 
   useEffect(() => {
-    fetchMedicines(); // Fetch medicines when the component mounts
+    fetchMedicines();
   }, []);
 
   const fetchMedicines = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/medicines');
-      setMedicines(response.data); // Store the fetched medicines
+      setMedicines(response.data);
     } catch (error) {
       toast.error('Failed to fetch medicines');
     }
@@ -38,17 +38,25 @@ function Medicine() {
     setData(datas);
   };
 
+  const onDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/medicines/${id}`);
+      fetchMedicines(); // Refresh the list after deletion
+      toast.success('Medicine deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete medicine');
+    }
+  };
+
   const addOrUpdateMedicine = async (medicine) => {
     try {
       if (medicine.id) {
-        // If the medicine has an id, it's an update
         await axios.put(`http://localhost:5000/api/medicines/${medicine.id}`, medicine);
       } else {
-        // If it doesn't have an id, it's a new entry
         await axios.post('http://localhost:5000/api/medicines', medicine);
       }
-      fetchMedicines(); // Refresh the list of medicines
-      onCloseModal(); // Close the modal
+      fetchMedicines();
+      onCloseModal();
       toast.success('Medicine saved successfully');
     } catch (error) {
       toast.error('Failed to save medicine');
@@ -62,10 +70,9 @@ function Medicine() {
           datas={data}
           isOpen={isOpen}
           closeModal={onCloseModal}
-          addOrUpdateMedicine={addOrUpdateMedicine} // Pass the function to the modal
+          addOrUpdateMedicine={addOrUpdateMedicine}
         />
       )}
-      {/* add button */}
       <button
         onClick={() => setIsOpen(true)}
         className="w-16 animate-bounce h-16 border border-border z-50 bg-subMain text-white rounded-full flex-colo fixed bottom-8 right-12 button-fb"
@@ -106,7 +113,7 @@ function Medicine() {
           />
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
-          <MedicineTable data={medicines} onEdit={onEdit} />
+          <MedicineTable data={medicines} onEdit={onEdit} onDelete={onDelete} />
         </div>
       </div>
     </Layout>

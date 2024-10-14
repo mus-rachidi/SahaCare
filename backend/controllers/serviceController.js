@@ -1,14 +1,26 @@
 const { promisePool } = require('../config/db'); // Import the promisePool from the db config
 
 // Get all services
+// Get all services with optional search
 const getAllServices = async (req, res) => {
+    const { search } = req.query; // Get the search query from the request
+    let query = 'SELECT * FROM services';
+    let queryParams = [];
+
+    // If a search term is provided, filter by name or other fields
+    if (search) {
+        query += ' WHERE name LIKE ?';
+        queryParams.push(`%${search}%`);
+    }
+
     try {
-        const [results] = await promisePool.query('SELECT * FROM services');
+        const [results] = await promisePool.query(query, queryParams);
         res.json(results);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
+
 
 // Get a specific service by ID
 const getServiceById = async (req, res) => {
