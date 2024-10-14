@@ -33,17 +33,18 @@ function Receptions() {
       } catch (err) {
         setError(err.message); // Set the error state
         toast.error('Failed to load receptions data'); // Show error toast
-      } finally {
-        setLoading(false); // Set loading to false after fetching
-      }
+      } 
+      // finally {
+      //   setLoading(false); // Set loading to false after fetching
+      // }
     };
 
     fetchReceptions();
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>; // Show loading message
-  }
+  // if (loading) {
+  //   return <div>Loading...</div>; // Show loading message
+  // }
 
   if (error) {
     return <div>Error: {error}</div>; // Show error message
