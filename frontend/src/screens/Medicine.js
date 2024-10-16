@@ -13,11 +13,17 @@ function Medicine() {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState({});
   const [medicines, setMedicines] = useState([]);
+  const [filteredMedicines, setFilteredMedicines] = useState([]);
   const [status, setStatus] = useState(sortsDatas.stocks[0]);
+  const [searchQuery, setSearchQuery] = useState(''); // State for search input
 
   useEffect(() => {
     fetchMedicines();
   }, []);
+
+  useEffect(() => {
+    filterMedicines();
+  }, [medicines, status, searchQuery]); // Add searchQuery to the dependency array
 
   const fetchMedicines = async () => {
     try {
@@ -26,6 +32,26 @@ function Medicine() {
     } catch (error) {
       toast.error('Failed to fetch medicines');
     }
+  };
+
+  const filterMedicines = () => {
+    let filtered = medicines;
+
+    // Filter by status
+    if (status.id === 2) { // 'Available'
+      filtered = filtered.filter(medicine => medicine.status === "available");
+    } else if (status.id === 3) { // 'Out of Stock'
+      filtered = filtered.filter(medicine => medicine.status === "out of stock");
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(medicine => 
+        medicine.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredMedicines(filtered);
   };
 
   const onCloseModal = () => {
@@ -51,12 +77,14 @@ function Medicine() {
   const addOrUpdateMedicine = async (medicine) => {
     try {
       if (medicine.id) {
+        // Update existing medicine
         await axios.put(`http://localhost:5000/api/medicines/${medicine.id}`, medicine);
       } else {
+        // Add new medicine
         await axios.post('http://localhost:5000/api/medicines', medicine);
       }
-      fetchMedicines();
-      onCloseModal();
+      fetchMedicines(); // Refresh the list after saving
+      onCloseModal(); // Close the modal after the operation
       toast.success('Medicine saved successfully');
     } catch (error) {
       toast.error('Failed to save medicine');
@@ -89,10 +117,12 @@ function Medicine() {
       >
         <div className="grid md:grid-cols-6 grid-cols-1 gap-2">
           <div className="md:col-span-5 grid lg:grid-cols-4 xs:grid-cols-2 items-center gap-2">
-            <input
+              <input
               type="text"
-              placeholder='Search "paracetamol"'
-              className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4"
+              placeholder='Search "teeth cleaning"'
+              className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)} // Update search query on input change
             />
             <Select
               selectedPerson={status}
@@ -113,7 +143,7 @@ function Medicine() {
           />
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
-          <MedicineTable data={medicines} onEdit={onEdit} onDelete={onDelete} />
+          <MedicineTable data={filteredMedicines} onEdit={onEdit} onDelete={onDelete} />
         </div>
       </div>
     </Layout>

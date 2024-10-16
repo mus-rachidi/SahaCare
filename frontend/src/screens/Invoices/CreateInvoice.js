@@ -68,7 +68,7 @@ function CreateInvoice() {
         <div className="grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-2 items-center">
           <div className="lg:col-span-3">
             <img
-              src="/images/logo.png"
+              src="/images/logo11.png"
               alt="logo"
               className=" w-32 object-contain"
             />

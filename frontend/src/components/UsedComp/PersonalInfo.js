@@ -75,10 +75,10 @@ function PersonalInfo({ titles }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {/* Uploader */}
-      <div className="flex flex-col w-full gap-3">
+      {/* <div className="flex flex-col w-full gap-3">
         <p className="text-sm text-gray-700">Profile Image</p>
         <Uploder />
-      </div>
+      </div> */}
       {/* Select Title */}
       {titles && (
         <div className="flex flex-col w-full gap-3">

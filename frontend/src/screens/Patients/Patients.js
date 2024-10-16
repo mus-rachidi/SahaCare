@@ -56,9 +56,9 @@ function Patients() {
   ];
 
   // Function to handle the search
-  const handleSearch = async () => {
+  const handleSearch = async (query) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/patients?search=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`http://localhost:5000/api/patients?search=${encodeURIComponent(query)}`);
       const data = await response.json();
       setFilteredData(data); // Update state with fetched data
     } catch (error) {
@@ -86,77 +86,72 @@ function Patients() {
       </Link>
       <h1 className="text-2xl font-bold text-gray-800">Patients</h1>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-  {boxes.map((box) => (
-    <div
-      key={box.id}
-      className="bg-white shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out flex items-center gap-4 rounded-lg border border-gray-200 p-6"
-    >
-      <div className="w-3/4">
-        <h2 className="text-sm font-medium text-gray-600">{box.title}</h2>
-        <h2 className="text-2xl my-4 font-semibold text-gray-900">{box.value}</h2>
-        <p className="text-xs text-gray-500">
-          Total Patients <span className={box.color[1]}>{box.value}</span>{' '}
-          {box.title === 'Today Patients'
-            ? 'today'
-            : box.title === 'Monthly Patients'
-            ? 'this month'
-            : 'this year'}
-        </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+        {boxes.map((box) => (
+          <div
+            key={box.id}
+            className="bg-white shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out flex items-center gap-4 rounded-lg border border-gray-200 p-6"
+          >
+            <div className="w-3/4">
+              <h2 className="text-sm font-medium text-gray-600">{box.title}</h2>
+              <h2 className="text-2xl my-4 font-semibold text-gray-900">{box.value}</h2>
+              <p className="text-xs text-gray-500">
+                Total Patients <span className={box.color[1]}>{box.value}</span>{' '}
+                {box.title === 'Today Patients'
+                  ? 'today'
+                  : box.title === 'Monthly Patients'
+                  ? 'this month'
+                  : 'this year'}
+              </p>
+            </div>
+            <div
+              className={`w-12 h-12 flex items-center justify-center rounded-lg text-white ${box.color[0]}`}
+            >
+              <box.icon className="text-xl" />
+            </div>
+          </div>
+        ))}
       </div>
+
       <div
-        className={`w-12 h-12 flex items-center justify-center rounded-lg text-white ${box.color[0]}`}
+        data-aos="fade-up"
+        data-aos-duration="1000"
+        data-aos-delay="10"
+        data-aos-offset="200"
+        className="bg-white my-8 rounded-xl border-[1px] border-border p-5"
       >
-        <box.icon className="text-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <input
+              type="text"
+              placeholder='Search "Search"'
+              className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
+            value={searchQuery}
+            onChange={(e) => {
+              const query = e.target.value;
+              setSearchQuery(query); // Update search query on change
+              handleSearch(query); // Trigger search on input change
+            }} 
+          />
+  
+          <Button
+            label="Refresh"
+            Icon={MdRefresh}
+            onClick={handleRefresh} // Call the refresh function here
+            className="h-14"
+          />
+        </div>
+        {/* Fixed height and overflow for scrollable patient list */}
+        <div className="mt-8 w-full h-96 overflow-y-auto">
+          <PatientTable
+            data={filteredData}
+            setData={setFilteredData}  // Pass the state setter here
+            functions={{
+              preview: previewPayment,
+            }}
+            used={false}
+          />
+        </div>
       </div>
-    </div>
-  ))}
-</div>
-
-
-      <div
-  data-aos="fade-up"
-  data-aos-duration="1000"
-  data-aos-delay="10"
-  data-aos-offset="200"
-  className="bg-white my-8 rounded-xl border-[1px] border-border p-5"
->
-  <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-    <input
-      type="text"
-      placeholder='Search by full name'
-      className="col-span-3 h-14 text-sm text-main rounded-md bg-dry border border-border px-4"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)} // Update search query on change
-      onKeyPress={(e) => { if (e.key === 'Enter') handleSearch(); }} // Trigger search on Enter key
-    />
-    <Button
-      label="Fillter"
-      Icon={MdFilterList}
-      onClick={handleSearch} // Call the search function here
-      className="h-14"
-    />
-    <Button
-      label="Refresh"
-      Icon={MdRefresh}
-      onClick={handleRefresh} // Call the refresh function here
-      className="h-14"
-    />
-  </div>
-  {/* Fixed height and overflow for scrollable patient list */}
-  <div className="mt-8 w-full h-96 overflow-y-auto">
-  <PatientTable
-  data={filteredData}
-  setData={setFilteredData}  // Pass the state setter here
-  functions={{
-    preview: previewPayment,
-  }}
-  used={false}
-/>
-
-  </div>
-</div>
-
     </Layout>
   );
 }

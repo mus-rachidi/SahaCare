@@ -6,7 +6,7 @@ import { RiDeleteBin6Line, RiDeleteBinLine } from 'react-icons/ri';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
-import axios from 'axios'; 
+import axios from 'axios';
 const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
 const tdclass = 'text-start text-sm py-4 px-2 whitespace-nowrap';
 
@@ -78,10 +78,10 @@ export function Transactiontable({ data, action, functions }) {
             <td className={tdclass}>
               <span
                 className={`py-1 px-4 ${item.status === 'Paid'
-                    ? 'bg-subMain text-subMain'
-                    : item.status === 'Pending'
-                      ? 'bg-orange-500 text-orange-500'
-                      : item.status === 'Cancel' && 'bg-red-600 text-red-600'
+                  ? 'bg-subMain text-subMain'
+                  : item.status === 'Pending'
+                    ? 'bg-orange-500 text-orange-500'
+                    : item.status === 'Cancel' && 'bg-red-600 text-red-600'
                   } bg-opacity-10 text-xs rounded-xl`}
               >
                 {item.status}
@@ -238,11 +238,15 @@ export function MedicineTable({ data, onEdit, onDelete }) {
               </td>
               <td className={`${tdclass} font-semibold`}>{item.price}</td>
               <td className={tdclass}>
-                <span className={`text-xs font-medium ${item.status === 'Out of stock' ? 'text-red-600' : 'text-green-600'}`}>
-                  {item.status}
-                </span>
+                <td className={tdclass}>
+                  <span className={`text-xs font-medium ${item.status === 'out of stock' ? 'text-red-600' : 'text-green-600'}`}>
+                    {item.status}
+                  </span>
+                </td>
+
+
               </td>
-              <td className={tdclass}>{item.stock}</td>
+              <td className={tdclass}>{item.inStock}</td>
               <td className={tdclass}>{item.measure}</td>
               <td className={tdclass}>
                 <MenuSelect datas={DropDown1} item={item}>
@@ -265,7 +269,7 @@ export function ServiceTable({ data, onEdit, setData }) {
     try {
       await axios.delete(`http://localhost:5000/api/services/${id}`);
       toast.success('Service deleted successfully');
-      
+
       // Update the state by filtering out the deleted service
       setData((prevData) => prevData.filter(service => service.id !== id));
     } catch (error) {
@@ -294,7 +298,7 @@ export function ServiceTable({ data, onEdit, setData }) {
 
   return (
     <div style={{
-      overflowY: 'auto', 
+      overflowY: 'auto',
       maxHeight: '400px',
       border: '1px solid #e2e8f0',
       borderRadius: '0.375rem',
@@ -345,42 +349,42 @@ export function ServiceTable({ data, onEdit, setData }) {
 export function PatientTable({ data, setData, functions, used }) {
   const DropDown1 = !used
     ? [
-        {
-          title: 'View',
-          icon: FiEye,
-          onClick: (data) => {
-            functions.preview(data.id);
-          },
+      {
+        title: 'View',
+        icon: FiEye,
+        onClick: (data) => {
+          functions.preview(data.id);
         },
-        {
-          title: 'Delete',
-          icon: RiDeleteBin6Line,
-          onClick: async (item) => {
-            if (window.confirm('Are you sure you want to delete this patient?')) {
-              try {
-                const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
-                alert(response.data.message); // Show success message
-                
-                // Remove the deleted item from the data state
-                setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
-                
-              } catch (error) {
-                console.error('Error deleting patient:', error);
-                alert('Error deleting patient'); // Show error message
-              }
+      },
+      {
+        title: 'Delete',
+        icon: RiDeleteBin6Line,
+        onClick: async (item) => {
+          if (window.confirm('Are you sure you want to delete this patient?')) {
+            try {
+              const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
+              alert(response.data.message); // Show success message
+
+              // Remove the deleted item from the data state
+              setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
+
+            } catch (error) {
+              console.error('Error deleting patient:', error);
+              alert('Error deleting patient'); // Show error message
             }
-          },
+          }
         },
-      ]
+      },
+    ]
     : [
-        {
-          title: 'View',
-          icon: FiEye,
-          onClick: (data) => {
-            functions.preview(data.id);
-          },
+      {
+        title: 'View',
+        icon: FiEye,
+        onClick: (data) => {
+          functions.preview(data.id);
         },
-      ];
+      },
+    ];
 
   const thclasse = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
   const tdclasse = 'text-start text-xs py-4 px-2 whitespace-nowrap';
@@ -676,10 +680,10 @@ export function AppointmentTable({ data, functions, doctor }) {
             <td className={tdclass}>
               <span
                 className={`py-1  px-4 ${item.status === 'Approved'
-                    ? 'bg-subMain text-subMain'
-                    : item.status === 'Pending'
-                      ? 'bg-orange-500 text-orange-500'
-                      : item.status === 'Cancel' && 'bg-red-600 text-red-600'
+                  ? 'bg-subMain text-subMain'
+                  : item.status === 'Pending'
+                    ? 'bg-orange-500 text-orange-500'
+                    : item.status === 'Cancel' && 'bg-red-600 text-red-600'
                   } bg-opacity-10 text-xs rounded-xl`}
               >
                 {item.status}
@@ -738,10 +742,10 @@ export function PaymentTable({ data, functions, doctor }) {
             <td className={tdclass}>
               <span
                 className={`py-1  px-4 ${item.status === 'Paid'
-                    ? 'bg-subMain text-subMain'
-                    : item.status === 'Pending'
-                      ? 'bg-orange-500 text-orange-500'
-                      : item.status === 'Cancel' && 'bg-red-600 text-red-600'
+                  ? 'bg-subMain text-subMain'
+                  : item.status === 'Pending'
+                    ? 'bg-orange-500 text-orange-500'
+                    : item.status === 'Cancel' && 'bg-red-600 text-red-600'
                   } bg-opacity-10 text-xs rounded-xl`}
               >
                 {item.status}

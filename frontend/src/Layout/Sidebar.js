@@ -1,15 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MenuDatas } from '../components/Datas';
 import { Link } from 'react-router-dom';
 
 function Sidebar() {
+  const [sidebarStyle, setSidebarStyle] = useState({
+    minHeight: '100vh',
+    width: '250px', // Default width
+    border: '2px solid rgba(0, 0, 0, 0.1)', // More visible border
+    boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', // Subtle shadow for depth
+  });
+
   // Determine the active link
   const isActiveLink = (path) => {
     return window.location.pathname.split('/')[1] === path.split('/')[1];
   };
 
+  // Function to update sidebar style based on window size
+  const updateSidebarStyle = () => {
+    const width = window.innerWidth;
+
+    // Adjust sidebar width based on window size
+    if (width < 768) {
+      setSidebarStyle({
+        minHeight: '100vh',
+        width: '200px', // Smaller width for mobile
+        border: '2px solid rgba(0, 0, 0, 0.1)', // Maintain border visibility
+        boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', // Maintain shadow
+      });
+    } else {
+      setSidebarStyle({
+        minHeight: '100vh',
+        width: '250px', // Default width for larger screens
+        border: '2px solid rgba(0, 0, 0, 0.1)', // Maintain border visibility
+        boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', // Maintain shadow
+      });
+    }
+  };
+
+  useEffect(() => {
+    updateSidebarStyle(); // Initial call to set the style
+    window.addEventListener('resize', updateSidebarStyle); // Add resize event listener
+
+    // Cleanup the event listener on unmount
+    return () => {
+      window.removeEventListener('resize', updateSidebarStyle);
+    };
+  }, []);
+
   return (
-    <nav className="bg-white xl:shadow-lg py-6 px-4 xl:h-screen w-full border-r border-border">
+    <nav
+      className="bg-white xl:shadow-lg py-6 px-4 xl:h-screen overflow-y-auto"
+      style={sidebarStyle}
+    >
       <Link to="/">
         <img
           src="/images/logo9.png"
