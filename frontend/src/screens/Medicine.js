@@ -8,6 +8,8 @@ import { Button, Select } from '../components/Form';
 import { MedicineTable } from '../components/Tables';
 import { sortsDatas } from '../components/Datas';
 import AddEditMedicineModal from '../components/Modals/AddEditMedicine';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 function Medicine() {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +30,7 @@ function Medicine() {
   const fetchMedicines = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/medicines');
-      setMedicines(response.data);
+      setMedicines(response.data);  
     } catch (error) {
       toast.error('Failed to fetch medicines');
     }
@@ -91,6 +93,26 @@ function Medicine() {
     }
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const tableColumn = ["Name", "Status", "inStock", "Price"]; // Columns for your table
+    const tableRows = [];
+
+    filteredMedicines.forEach(medicine => {
+      const medicineData = [
+        medicine.name,
+        medicine.status,
+        medicine.inStock,
+        medicine.price,
+      ];
+      tableRows.push(medicineData);
+    });
+
+    doc.autoTable(tableColumn, tableRows, { startY: 20 });
+    doc.text("Medicine Report", 14, 15);
+    doc.save("medicines.pdf");
+  };
+
   return (
     <Layout>
       {isOpen && (
@@ -117,9 +139,9 @@ function Medicine() {
       >
         <div className="grid md:grid-cols-6 grid-cols-1 gap-2">
           <div className="md:col-span-5 grid lg:grid-cols-4 xs:grid-cols-2 items-center gap-2">
-              <input
+            <input
               type="text"
-              placeholder='Search "teeth cleaning"'
+              placeholder='Search'
               className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)} // Update search query on input change
@@ -137,9 +159,7 @@ function Medicine() {
           <Button
             label="Export"
             Icon={MdOutlineCloudDownload}
-            onClick={() => {
-              toast.error('Exporting is not available yet');
-            }}
+            onClick={exportToPDF} // Call export function
           />
         </div>
         <div className="mt-8 w-full overflow-x-scroll">

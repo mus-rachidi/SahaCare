@@ -8,20 +8,22 @@ import { ServiceTable } from '../components/Tables';
 import AddEditServiceModal from '../components/Modals/AddEditServiceModal';
 import axios from 'axios';
 import { sortsDatas } from '../components/Datas';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 function Services() {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]); // State for filtered services
-  const [status, setStatus] = useState(sortsDatas.service[0]); // Default to "All"
-  const [searchQuery, setSearchQuery] = useState(''); // State for search input
+  const [filteredData, setFilteredData] = useState([]);
+  const [status, setStatus] = useState(sortsDatas.service[0]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [serviceData, setServiceData] = useState({});
 
   const fetchServices = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/services');
       setData(response.data);
-      setFilteredData(response.data); // Initialize filtered data
+      setFilteredData(response.data);
     } catch (error) {
       toast.error('Failed to fetch services');
     }
@@ -30,30 +32,21 @@ function Services() {
   const filterServices = () => {
     let filtered = data;
 
-    console.log('Initial Data:', data);
-
     // Filter by status
     if (status.id === 2) { // Enabled
       filtered = filtered.filter(service => service.status === "enable");
-      console.log('Filtered Enabled Services:', filtered);
     } else if (status.id === 3) { // Disabled
       filtered = filtered.filter(service => service.status === "disable");
-      console.log('Filtered Disabled Services:', filtered);
     }
-
-    console.log('After Status Filter:', filtered);
 
     // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(service =>
         service.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      console.log('Filtered by Search Query:', filtered);
     }
 
-    console.log('Final Filtered Data:', filtered);
-
-    setFilteredData(filtered); // Update filtered data
+    setFilteredData(filtered);
   };
 
   const onCloseModal = () => {
@@ -67,12 +60,21 @@ function Services() {
     setServiceData(datas);
   };
 
+  const handleExport = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['ID', 'Name', 'Status']], // Change the headers according to your data structure
+      body: filteredData.map(service => [service.id, service.name, service.status]), // Adjust based on your service structure
+    });
+    doc.save('services.pdf');
+  };
+
   useEffect(() => {
     fetchServices();
   }, []);
 
   useEffect(() => {
-    filterServices(); // Call filter function when data or filters change
+    filterServices();
   }, [data, status, searchQuery]);
 
   return (
@@ -97,10 +99,10 @@ function Services() {
           <div className="md:col-span-5 grid lg:grid-cols-4 xs:grid-cols-2 items-center gap-2">
             <input
               type="text"
-              placeholder='Search "Search"'
+              placeholder='Search'
               className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} // Update search query on input change
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Select
               selectedPerson={status}
@@ -116,9 +118,7 @@ function Services() {
           <Button
             label="Export"
             Icon={MdOutlineCloudDownload}
-            onClick={() => {
-              toast.error('Exporting is not available yet');
-            }}
+            onClick={handleExport} // Call the export function
           />
         </div>
 

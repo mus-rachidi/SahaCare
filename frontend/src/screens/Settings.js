@@ -4,8 +4,12 @@ import { BiUserPlus } from 'react-icons/bi';
 import { RiLockPasswordLine } from 'react-icons/ri';
 import PersonalInfo from '../components/UsedComp/PersonalInfo';
 import ChangePassword from '../components/UsedComp/ChangePassword';
+import PropTypes from 'prop-types';
 
 function Settings() {
+  // Retrieve doctor data from local storage
+  const doctorData = JSON.parse(localStorage.getItem('doctor'));
+  
   const [activeTab, setActiveTab] = React.useState(1);
   const tabs = [
     {
@@ -23,9 +27,9 @@ function Settings() {
   const tabPanel = () => {
     switch (activeTab) {
       case 1:
-        return <PersonalInfo titles={true} />;
-      case 2:
-        return <ChangePassword />;
+        return <PersonalInfo titles={true} doctor={doctorData} />;
+        case 2:
+          return <ChangePassword doctorId={doctorData ? doctorData._id : null} />;        
       default:
         return;
     }
@@ -34,7 +38,7 @@ function Settings() {
   return (
     <Layout>
       <h1 className="text-xl font-semibold">Settings</h1>
-      <div className=" grid grid-cols-12 gap-6 my-8 items-start">
+      <div className="grid grid-cols-12 gap-6 my-8 items-start">
         <div
           data-aos="fade-right"
           data-aos-duration="1000"
@@ -48,23 +52,23 @@ function Settings() {
             className="w-40 h-40 rounded-full object-cover border border-dashed border-subMain"
           />
           <div className="gap-2 flex-colo">
-            <h2 className="text-sm font-semibold">Dr. Mustapha Mburuge</h2>
-            <p className="text-xs text-textGray">Mustaphamburuge@gmail.com</p>
-            <p className="text-xs">+254 712 345 678</p>
+            <h2 className="text-sm font-semibold">{doctorData ? doctorData.fullName : 'Loading...'}</h2>
+            <p className="text-xs text-textGray">{doctorData ? doctorData.email : 'Loading...'}</p>
+            <p className="text-xs">{doctorData ? doctorData.phone : 'Loading...'}</p>
           </div>
           {/* tabs */}
           <div className="flex-colo gap-3 px-2 xl:px-12 w-full">
-            {tabs.map((tab, index) => (
+            {tabs.map((tab) => (
               <button
                 onClick={() => setActiveTab(tab.id)}
-                key={index}
+                key={tab.id}
+                aria-label={`Switch to ${tab.name}`}
                 className={`
-                ${
-                  activeTab === tab.id
+                  ${activeTab === tab.id
                     ? 'bg-text text-subMain'
                     : 'bg-dry text-main hover:bg-text hover:text-subMain'
-                }
-                text-xs gap-4 flex items-center w-full p-4 rounded`}
+                  }
+                  text-xs gap-4 flex items-center w-full p-4 rounded`}
               >
                 <tab.icon className="text-lg" /> {tab.name}
               </button>

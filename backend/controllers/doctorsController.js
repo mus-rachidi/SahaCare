@@ -108,7 +108,6 @@ const deleteDoctor = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
 const loginDoctor = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -128,6 +127,7 @@ const loginDoctor = async (req, res) => {
     }
 };
 
+
 // Export doctors to CSV
 const exportDoctorsToCSV = async (req, res) => {
     try {
@@ -145,6 +145,36 @@ const exportDoctorsToCSV = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+// Change password
+const changePassword = async (req, res) => {
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    try {
+        // Fetch doctor by ID
+        const [doctor] = await promisePool.query('SELECT * FROM doctors WHERE id = ?', [id]);
+        if (doctor.length === 0) {
+            return res.status(404).json({ message: 'Doctor not found' });
+        }
+
+        // Compare old password
+        const isMatch = await bcrypt.compare(oldPassword, doctor[0].password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Old password is incorrect' });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password in the database
+        await promisePool.query('UPDATE doctors SET password = ? WHERE id = ?', [hashedPassword, id]);
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 // Export the function in your module
 module.exports = {
@@ -154,5 +184,6 @@ module.exports = {
     updateDoctor,
     deleteDoctor,
     loginDoctor,
+    changePassword,
     exportDoctorsToCSV,
 };

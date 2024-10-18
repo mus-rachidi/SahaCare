@@ -7,12 +7,14 @@ import Layout from '../Layout';
 import { Button } from '../components/Form';
 import { ReceptionsTable } from '../components/Tables';
 import AddReceptionModal from '../components/Modals/AddReceptionModal';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 function Receptions() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [data, setData] = React.useState([]);
-  const [loading, setLoading] = React.useState(true); // Add loading state
   const [error, setError] = React.useState(null); // Add error state
+  const [searchTerm, setSearchTerm] = React.useState(''); // State for search input
 
   const onCloseModal = () => {
     setIsOpen(false);
@@ -24,7 +26,6 @@ function Receptions() {
     setData(data);
   };
 
-  // Fetch receptions data from the backend
   useEffect(() => {
     const fetchReceptions = async () => {
       try {
@@ -34,26 +35,43 @@ function Receptions() {
         setError(err.message); // Set the error state
         toast.error('Failed to load receptions data'); // Show error toast
       } 
-      // finally {
-      //   setLoading(false); // Set loading to false after fetching
-      // }
     };
 
     fetchReceptions();
-  }, []);
+  }, [searchTerm]); // Updated to only depend on searchTerm
 
-  // if (loading) {
-  //   return <div>Loading...</div>; // Show loading message
-  // }
+  // Filter the data based on the search term
+  const filteredData = Array.isArray(data) ? data.filter(item => 
+    item.fullName && item.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
-  if (error) {
-    return <div>Error: {error}</div>; // Show error message
-  }
+  // Function to export data as PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const tableColumn = ["Full Name", "Title", "Email", "Phone"]; // Update based on your data structure
+    const tableRows = [];
+
+    // Add data rows
+    filteredData.forEach(item => {
+      const itemData = [
+        item.fullName,
+        item.title, // Assuming your data has a date field
+        item.email, // Assuming your data has a time field
+        item.phone // Assuming your data has a reason field
+      ];
+      tableRows.push(itemData);
+    });
+
+    // Generate the table
+    doc.autoTable(tableColumn, tableRows, { startY: 20 });
+    doc.text("Receptions Report", 14, 15);
+    doc.save("receptions_report.pdf");
+  };
 
   return (
     <Layout>
       {
-        // add doctor modal
+        // Add doctor modal
         isOpen && (
           <AddReceptionModal
             closeModal={onCloseModal}
@@ -63,7 +81,7 @@ function Receptions() {
           />
         )
       }
-      {/* add button */}
+      {/* Add button */}
       <button
         onClick={() => setIsOpen(true)}
         className="w-16 animate-bounce h-16 border border-border z-50 bg-subMain text-white rounded-full flex-colo fixed bottom-8 right-12 button-fb"
@@ -79,29 +97,29 @@ function Receptions() {
         data-aos-offset="200"
         className="bg-white my-8 rounded-xl border-[1px] border-border p-5"
       >
-        {/* datas */}
+        {/* Search input */}
         <div className="grid md:grid-cols-6 sm:grid-cols-2 grid-cols-1 gap-2">
           <div className="md:col-span-5 grid lg:grid-cols-4 items-center gap-6">
             <input
-              type="text"
-              placeholder='Search "Amina Mwakio"'
-              className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4"
+             type="text"
+             placeholder='Search "Search"'
+             className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)} // Update search term
             />
           </div>
 
-          {/* export */}
+          {/* Export */}
           <Button
             label="Export"
             Icon={MdOutlineCloudDownload}
-            onClick={() => {
-              toast.error('Exporting is not available yet');
-            }}
+            onClick={exportToPDF} // Call export function
           />
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
           <ReceptionsTable
             doctor={false}
-            data={data} // Use the fetched data
+            receptions={filteredData} // Updated to use filtered data
             functions={{
               preview: preview,
             }}

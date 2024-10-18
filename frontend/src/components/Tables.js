@@ -431,36 +431,16 @@ export function PatientTable({ data, setData, functions, used }) {
   );
 }
 
-
-export function DoctorsTable({ functions }) {
-  const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Fetch doctors from the backend
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/doctors'); // Adjust the API endpoint accordingly
-        setDoctors(response.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDoctors();
-  }, []);
-
-  // Function to delete a doctor
+export function DoctorsTable({ data, functions, setData }) {
   const deleteDoctor = async (id) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this doctor?');
     if (confirmDelete) {
       try {
         const response = await axios.delete(`http://localhost:5000/api/doctors/${id}`);
         alert(response.data.message); // Show success message
-        setDoctors(doctors.filter((doctor) => doctor.id !== id));
+        
+        // Update the state to remove the deleted doctor
+        setData((prevData) => prevData.filter((doctor) => doctor.id !== id));
       } catch (err) {
         console.error('Error deleting doctor:', err);
         alert('Error deleting doctor'); // Show error message
@@ -488,21 +468,13 @@ export function DoctorsTable({ functions }) {
   const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
   const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
 
-  if (loading) {
-    return <p>Loading doctors...</p>;
-  }
-
-  if (error) {
-    return <p>Error: {error}</p>;
-  }
-
   return (
     <div style={{
       overflowY: 'auto',
-      maxHeight: '400px',  // Adjust this height based on your design needs
-      border: '1px solid #e2e8f0', // Example border style
-      borderRadius: '0.375rem', // For rounded corners
-      padding: '1rem', // Padding around the table
+      maxHeight: '400px',
+      border: '1px solid #e2e8f0',
+      borderRadius: '0.375rem',
+      padding: '1rem',
     }}>
       <table className="table-auto w-full">
         <thead className="bg-dry rounded-md overflow-hidden">
@@ -517,7 +489,7 @@ export function DoctorsTable({ functions }) {
           </tr>
         </thead>
         <tbody>
-          {doctors.map((doctor) => (
+          {data.map((doctor) => (
             <tr key={doctor.id} className="border-b border-border hover:bg-greyed transitions">
               <td className={tdclass}>{doctor.id}</td>
               <td className={tdclass}>{doctor.fullName}</td>
@@ -539,27 +511,9 @@ export function DoctorsTable({ functions }) {
     </div>
   );
 }
-export function ReceptionsTable({ functions }) {
-  const [receptions, setReceptions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch receptions from the backend
-  useEffect(() => {
-    const fetchReceptions = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/receptions'); // Adjust the API endpoint accordingly
-        setReceptions(response.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchReceptions();
-  }, []);
-
+export function ReceptionsTable({ receptions, functions }) {
   // Function to delete a reception
   const deleteReception = async (id) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this reception?');
@@ -567,7 +521,7 @@ export function ReceptionsTable({ functions }) {
       try {
         const response = await axios.delete(`http://localhost:5000/api/receptions/${id}`);
         alert(response.data.message); // Show success message
-        setReceptions(receptions.filter((reception) => reception.id !== id));
+        // Here you might need to inform the parent component to refresh the list or handle it accordingly
       } catch (err) {
         console.error('Error deleting reception:', err);
         alert('Error deleting reception'); // Show error message
@@ -594,14 +548,6 @@ export function ReceptionsTable({ functions }) {
 
   const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
   const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
-
-  if (loading) {
-    return <p>Loading receptions...</p>;
-  }
-
-  if (error) {
-    return <p>Error: {error}</p>;
-  }
 
   return (
     <div style={{

@@ -7,11 +7,13 @@ const {
     createDoctor, 
     updateDoctor, 
     deleteDoctor,
-    exportDoctorsToCSV
+    exportDoctorsToCSV,
+    loginDoctor,
+    changePassword
 } = require('../controllers/doctorsController');
 
 const router = express.Router();
-
+router.put('/doctors/:id/change-password', changePassword);
 router.get('/doctors/export', exportDoctorsToCSV);// GET all doctors
 router.get('/doctors/', getAllDoctors);
 
@@ -26,5 +28,5 @@ router.put('/doctors/:id', updateDoctor);
 
 // DELETE a doctor by ID
 router.delete('/doctors/:id', deleteDoctor);
-
+router.post('/doctors/login', loginDoctor);
 module.exports = router;

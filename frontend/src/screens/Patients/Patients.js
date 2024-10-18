@@ -1,36 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../Layout';
 import { memberData } from '../../components/Datas';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; 
 import { BiPlus, BiTime } from 'react-icons/bi';
 import { BsCalendarMonth } from 'react-icons/bs';
-import { MdFilterList, MdRefresh } from 'react-icons/md';
+import { MdFilterList, MdOutlineCloudDownload } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import { Button } from '../../components/Form';
 import { PatientTable } from '../../components/Tables';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable'; 
+
+export const sortsDatas = {
+  genderFilter: [
+    {
+      id: 1,
+      name: 'Gender...',
+    },
+    {
+      id: 2,
+      name: 'Female',
+    },
+    {
+      id: 3,
+      name: 'Male',
+    },
+  ],
+};
 
 function Patients() {
-  const [searchQuery, setSearchQuery] = useState(''); // State for search query
-  const [filteredData, setFilteredData] = useState(memberData); // State for filtered data
-  const [patientCounts, setPatientCounts] = useState({ today: 0, monthly: 0, yearly: 0 }); // State for patient counts
+  const [searchQuery, setSearchQuery] = useState(''); 
+  const [genderFilter, setGenderFilter] = useState(''); // State for gender filter
+  const [filteredData, setFilteredData] = useState(memberData); 
+  const [patientCounts, setPatientCounts] = useState({ today: 0, monthly: 0, yearly: 0 });
   const navigate = useNavigate();
+  const location = useLocation(); 
 
-  // Fetch patient counts from the backend
+  const fetchPatientData = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/patients');
+      const data = await response.json();
+      setFilteredData(data); 
+    } catch (error) {
+      toast.error('Error fetching patient data');
+    }
+  };
+
+  const fetchPatientCounts = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/counts');
+      const data = await response.json();
+      setPatientCounts(data); 
+    } catch (error) {
+      toast.error('Error fetching patient counts');
+    }
+  };
+
   useEffect(() => {
-    const fetchPatientCounts = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/counts');
-        const data = await response.json();
-        setPatientCounts(data); // Set the patient counts from backend
-      } catch (error) {
-        toast.error('Error fetching patient counts');
-      }
-    };
+    fetchPatientData(); 
+    fetchPatientCounts(); 
+  }, [location]); 
 
-    fetchPatientCounts();
-  }, []); // Empty dependency array to run once on component mount
-
-  // Define the boxes array with fetched data
   const boxes = [
     {
       id: 1,
@@ -55,25 +85,71 @@ function Patients() {
     },
   ];
 
-  // Function to handle the search
-  const handleSearch = async (query) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/patients?search=${encodeURIComponent(query)}`);
-      const data = await response.json();
-      setFilteredData(data); // Update state with fetched data
-    } catch (error) {
-      toast.error("Error fetching patients");
-    }
+  // Function to filter patients
+// Function to filter patients
+const filterPatients = () => {
+  let filtered = memberData; // Start with the original data
+
+  // Filter by gender
+  if (genderFilter === 'Female') {
+    filtered = filtered.filter(patient => patient.gender === 'Female');
+  } else if (genderFilter === 'Male') {
+    filtered = filtered.filter(patient => patient.gender === 'Male');
+  } else if (genderFilter === '') {
+    // If genderFilter is empty, show all patients
+    filtered = memberData;
+  }
+
+  // Filter by search query
+  if (searchQuery) {
+    filtered = filtered.filter(patient =>
+      patient.FullName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  setFilteredData(filtered); // Update filtered data
+};
+
+  // Handle search query change
+  const handleSearch = (query) => {
+    setSearchQuery(query); 
+    filterPatients(); // Call filter function
   };
 
-  // Function to refresh the page
+  // Handle gender filter change
+  const handleGenderChange = (e) => {
+    const selectedGender = e.target.value;
+    setGenderFilter(selectedGender);
+    filterPatients(); // Call filter function
+  };
+
   const handleRefresh = () => {
-    window.location.reload(); // Refresh the current page
+    fetchPatientData(); 
   };
 
-  // Preview payment function
   const previewPayment = (id) => {
     navigate(`/patients/preview/${id}`);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.text('Patients Report', 20, 10);
+
+    doc.autoTable({
+      head: [['ID', 'Name', 'Age', 'Gender', 'Address', 'Phone']],
+      body: filteredData.map(patient => [
+        patient.id,
+        patient.FullName,
+        patient.age,
+        patient.gender,
+        patient.email,
+        patient.phone,
+      ]),
+    });
+
+    // Save the PDF
+    doc.save('patients_report.pdf');
   };
 
   return (
@@ -104,47 +180,49 @@ function Patients() {
                   : 'this year'}
               </p>
             </div>
-            <div
-              className={`w-12 h-12 flex items-center justify-center rounded-lg text-white ${box.color[0]}`}
-            >
+            <div className={`w-12 h-12 flex items-center justify-center rounded-lg text-white ${box.color[0]}`}>
               <box.icon className="text-xl" />
             </div>
           </div>
         ))}
       </div>
 
-      <div
-        data-aos="fade-up"
-        data-aos-duration="1000"
-        data-aos-delay="10"
-        data-aos-offset="200"
-        className="bg-white my-8 rounded-xl border-[1px] border-border p-5"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <input
+      <div className="bg-white my-8 rounded-xl border-[1px] border-border p-5">
+        <div className="grid md:grid-cols-6 grid-cols-1 gap-4">
+          <div className="md:col-span-5 grid lg:grid-cols-4 xs:grid-cols-2 items-center gap-2">
+            <input
               type="text"
               placeholder='Search "Search"'
               className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
-            value={searchQuery}
-            onChange={(e) => {
-              const query = e.target.value;
-              setSearchQuery(query); // Update search query on change
-              handleSearch(query); // Trigger search on input change
-            }} 
-          />
-  
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)} // Use handleSearch
+            />
+
+            {/* Gender Select Box */}
+            <select
+              value={genderFilter}
+              onChange={handleGenderChange}
+              className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
+            >
+              {sortsDatas.genderFilter.map((option) => (
+                <option key={option.id} value={option.name === 'Gender...' ? '' : option.name}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <Button
-            label="Refresh"
-            Icon={MdRefresh}
-            onClick={handleRefresh} // Call the refresh function here
+            label="Export PDF"
+            Icon={MdOutlineCloudDownload}
+            onClick={exportPDF} 
             className="h-14"
           />
         </div>
-        {/* Fixed height and overflow for scrollable patient list */}
+
         <div className="mt-8 w-full h-96 overflow-y-auto">
           <PatientTable
             data={filteredData}
-            setData={setFilteredData}  // Pass the state setter here
+            setData={setFilteredData}  
             functions={{
               preview: previewPayment,
             }}
