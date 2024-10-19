@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Input } from '../Form';
+import { Button } from '../Form'; // Assuming Button is still a custom component
 import { HiOutlineCheckCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
@@ -27,32 +27,39 @@ function ChangePassword({ doctorId }) {
     };
 
     return (
-        <div className="flex-colo gap-4">
-            <Input 
-                label="Old Password" 
-                color={true} 
-                type="password" 
-                value={oldPassword} 
-                onChange={(e) => setOldPassword(e.target.value)} 
-            />
-            <Input 
-                label="New Password" 
-                color={true} 
-                type="password" 
-                value={newPassword} 
-                onChange={(e) => setNewPassword(e.target.value)} 
-            />
-            <Input 
-                label="Confirm Password" 
-                color={true} 
-                type="password" 
-                value={confirmPassword} 
-                onChange={(e) => setConfirmPassword(e.target.value)} 
-            />
+        <div className="flex flex-col gap-4 max-w-sm mx-auto">
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Old Password</label>
+                <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700">New Password</label>
+                <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+            </div>
             <Button
                 label={'Save Changes'}
                 Icon={HiOutlineCheckCircle}
                 onClick={handleChangePassword}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2"
             />
         </div>
     );

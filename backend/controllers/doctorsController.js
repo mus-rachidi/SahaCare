@@ -151,27 +151,35 @@ const changePassword = async (req, res) => {
     const { oldPassword, newPassword } = req.body;
 
     try {
-        // Fetch doctor by ID
+        // Log the ID to verify the correct ID is being received
+        console.log(`Changing password for doctor with ID: ${id}`);
+
+        // Fetch the doctor from the database
         const [doctor] = await promisePool.query('SELECT * FROM doctors WHERE id = ?', [id]);
+
         if (doctor.length === 0) {
+            console.log('Doctor not found');
             return res.status(404).json({ message: 'Doctor not found' });
         }
 
-        // Compare old password
+        // Log the hashed password retrieved from the database
+        console.log('Stored hashed password:', doctor[0].password);
+
+        // Verify the old password
         const isMatch = await bcrypt.compare(oldPassword, doctor[0].password);
         if (!isMatch) {
+            console.log('Old password does not match');
             return res.status(401).json({ message: 'Old password is incorrect' });
         }
 
-        // Hash new password
+        // Hash the new password and update it in the database
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        // Update password in the database
         await promisePool.query('UPDATE doctors SET password = ? WHERE id = ?', [hashedPassword, id]);
 
-        res.status(200).json({ message: 'Password changed successfully' });
+        res.status(200).json({ message: 'Password updated successfully' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error in changePassword:', error);
+        return res.status(500).json({ error: error.message });
     }
 };
 
