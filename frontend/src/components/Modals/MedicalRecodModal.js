@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Modal from './Modal';
 import { Button } from '../Form';
 import { FiEye } from 'react-icons/fi';
@@ -7,7 +7,18 @@ import { medicineData } from '../Datas';
 import { useNavigate } from 'react-router-dom';
 
 function MedicalRecodModal({ closeModal, isOpen, datas }) {
+  const [selectedTeeth, setSelectedTeeth] = useState([]);
   const navigate = useNavigate();
+
+  // Function to handle tooth selection
+  const handleToothClick = (toothNumber) => {
+    setSelectedTeeth((prevSelectedTeeth) =>
+      prevSelectedTeeth.includes(toothNumber)
+        ? prevSelectedTeeth.filter((tooth) => tooth !== toothNumber) // Deselect
+        : [...prevSelectedTeeth, toothNumber] // Select
+    );
+  };
+
   return (
     <Modal
       closeModal={closeModal}
@@ -28,56 +39,19 @@ function MedicalRecodModal({ closeModal, isOpen, datas }) {
             </div>
           </div>
         ))}
-        {/* visual sign */}
+        
+        {/* Tooth Chart */}
         <div className="grid grid-cols-12 gap-4 w-full">
           <div className="col-span-12 md:col-span-3">
-            <p className="text-sm font-medium">Vital Signs:</p>
+            <p className="text-sm font-medium">Tooth Chart:</p>
           </div>
           <div className="col-span-12 md:col-span-9 border-[1px] border-border rounded-xl p-6">
-            <p className="text-xs text-main font-light leading-5">
-              {datas?.vitalSigns?.map((item) => (
-                // separate each item with comma
-                <span key={item} className="mr-1">
-                  {item},
-                </span>
-              ))}
-            </p>
-          </div>
-        </div>
-        {/* medicine */}
-        <div className="grid grid-cols-12 gap-4 w-full">
-          <div className="col-span-12 md:col-span-3">
-            <p className="text-sm font-medium">Prescriptions</p>
-          </div>
-          <div className="col-span-12 md:col-span-9 border-[1px] border-border rounded-xl overflow-hidden p-4">
-            <MedicineDosageTable
-              data={medicineData?.slice(0, 3)}
-              functions={{}}
-              button={false}
-            />
-          </div>
-        </div>
-        {/* attachments */}
-        <div className="grid grid-cols-12 gap-4 w-full">
-          <div className="col-span-12 md:col-span-3">
-            <p className="text-sm font-medium">Attachments:</p>
-          </div>
-          <div className="col-span-12 md:col-span-9 border-[1px] border-border rounded-xl p-6 xs:grid-cols-2 md:grid-cols-4 grid gap-4">
-            {
-              // show attachments
-              datas?.attachments?.map((item) => (
-                <img
-                  key={item}
-                  src={item}
-                  alt="attachment"
-                  className="w-full md:h-32 object-cover rounded-md"
-                />
-              ))
-            }
+            <ToothChart onToothClick={handleToothClick} selectedTeeth={selectedTeeth} />
+            <p>Selected Teeth: {selectedTeeth.join(', ')}</p>
           </div>
         </div>
 
-        {/* view Invoice */}
+        {/* View Invoice */}
         <div className="flex justify-end items-center w-full">
           <div className="md:w-3/4 w-full">
             <Button
@@ -94,5 +68,34 @@ function MedicalRecodModal({ closeModal, isOpen, datas }) {
     </Modal>
   );
 }
+
+// Tooth Chart Component with Image
+const ToothChart = ({ onToothClick, selectedTeeth }) => {
+  const teeth = Array.from({ length: 32 }, (_, i) => i + 1); // Create 32 teeth for adult
+
+  return (
+    <div className="grid grid-cols-8 gap-2">
+      {teeth.map((toothNumber) => (
+        <div
+          key={toothNumber}
+          className={`relative p-4 cursor-pointer ${
+            selectedTeeth.includes(toothNumber) ? 'bg-blue-400' : 'bg-white'
+          }`}
+          onClick={() => onToothClick(toothNumber)}
+        >
+          {/* Here you can use a background image for the tooth */}
+          <img
+            src={`/path-to-your-tooth-chart-images/tooth-${toothNumber}.png`}
+            alt={`Tooth ${toothNumber}`}
+            className="w-full h-full object-cover"
+          />
+          <p className="absolute top-1 left-1 text-sm text-black">
+            {toothNumber}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default MedicalRecodModal;

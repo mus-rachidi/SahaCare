@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../Layout';
 import { Button, FromToDate, Select } from '../../components/Form';
 import { Transactiontable } from '../../components/Tables';
-import { sortsDatas, transactionData } from '../../components/Datas';
+import { sortsDatas } from '../../components/Datas'; // Removed transactionData import
 import { BiChevronDown, BiTime } from 'react-icons/bi';
 import {
   MdFilterList,
@@ -17,6 +17,8 @@ function Payments() {
   const [status, setStatus] = useState(sortsDatas.status[0]);
   const [method, setMethod] = useState(sortsDatas.method[0]);
   const [dateRange, setDateRange] = useState([new Date(), new Date()]);
+  const [transactionData, setTransactionData] = useState([]); // State for transaction data
+  const [loading, setLoading] = useState(true); // State for loading
   const [startDate, endDate] = dateRange;
   const navigate = useNavigate();
 
@@ -34,6 +36,7 @@ function Payments() {
       datas: sortsDatas.method,
     },
   ];
+
   // boxes
   const boxes = [
     {
@@ -66,6 +69,31 @@ function Payments() {
   const previewPayment = (id) => {
     navigate(`/payments/preview/${id}`);
   };
+
+  // Fetch transaction data from the API
+  useEffect(() => {
+    const fetchTransactionData = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/payments'); // Adjust the URL as needed
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setTransactionData(data); // Set the fetched data to state
+      } catch (error) {
+        console.error('Failed to fetch transaction data:', error);
+        toast.error('Failed to load transaction data');
+      } finally {
+        setLoading(false); // Set loading to false after data is fetched
+      }
+    };
+
+    fetchTransactionData();
+  }, []); // Empty dependency array to run on component mount
+
+  if (loading) {
+    return <div>Loading...</div>; // Optional: Add a loading state
+  }
 
   return (
     <Layout>
@@ -154,7 +182,7 @@ function Payments() {
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
           <Transactiontable
-            data={transactionData}
+            data={transactionData} // Use the fetched transaction data
             action={true}
             functions={{
               edit: editPayment,

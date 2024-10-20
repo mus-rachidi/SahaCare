@@ -621,40 +621,49 @@ export const servicesData = [
     status: true,
   },
 ];
-const generateInvoices = () => {
-    const invoices = [];
 
-    const servicesData = [
-        { id: 1, name: 'Root Canal Treatment' },
-        { id: 2, name: 'Teeth Whitening Treatment' },
-        { id: 3, name: 'Dental Implants Treatment' },
-        { id: 4, name: 'Dental Crowns Treatment' },
-        { id: 5, name: 'Dental Bridges Treatment' },
-        { id: 6, name: 'Dental Veneers Treatment' },
-        { id: 7, name: 'Dental Braces Treatment' },
-        { id: 8, name: 'Dental Sealants Treatment' },
-        { id: 9, name: 'Dentures Treatment' },
-    ];
 
-    for (let i = 0; i < memberData.length; i++) {
-        invoices.push({
-            id: Date.now() + i, // Generate a unique ID (or use a better method if needed)
-            to: memberData[i], // Use the current member data
-            total: Math.floor(Math.random() * 10000) + 1000, // Random total for demonstration
-            createdDate: new Date().toLocaleDateString(), // Current date
-            dueDate: new Date(new Date().setDate(new Date().getDate() + 7)).toLocaleDateString(), // Due date one week later
-            items: servicesData.slice(0, Math.min(5, servicesData.length)).map((service, index) => ({
-                id: index + 1,
-                name: service.name,
-                price: Math.floor(Math.random() * 1000) + 100, // Random price for demonstration
-                description: `${service.name} Treatment`,
-            })),
-        });
-    }
-
-    return invoices;
+// Function to fetch invoices from the backend API
+const fetchInvoices = async () => {
+  try {
+      const response = await fetch('http://localhost:5000/api/invoices'); // Replace with your actual API endpoint
+      if (!response.ok) {
+          throw new Error('Failed to fetch invoices');
+      }
+      const data = await response.json();
+      console.log('Fetched invoices data:', data); // Log the fetched data
+      return data; // Ensure data is in the expected format
+  } catch (error) {
+      console.error('Error fetching invoices:', error);
+      return []; // Return an empty array in case of error
+  }
 };
-export const invoicesData = generateInvoices();
+
+// Function to generate invoices by fetching from the API
+export const generateInvoices = async () => {
+  const invoices = await fetchInvoices(); // Fetch invoices from the backend
+
+  // Ensure invoices is an array before mapping
+  if (!Array.isArray(invoices)) {
+      console.error('Invoices data is not an array:', invoices);
+      return []; // Return an empty array if the data is not valid
+  }
+
+  return invoices.map((invoice, index) => ({
+      id: invoice.id || Date.now() + index, // Use ID from invoice or generate a unique one
+      patient_id: invoice.patient_id, // Ensure patient ID is included
+      doctor_id: invoice.doctor_id, // Ensure doctor ID is included
+      created_date: new Date(invoice.created_date).toLocaleDateString(), // Ensure this matches your DB field
+      due_date: new Date(invoice.due_date).toLocaleDateString(), // Ensure this matches your DB field
+      total_amount: invoice.total_amount, // Match this with your DB column name
+      status: invoice.status, // Include status if available
+      services_rendered: JSON.stringify(invoice.items), // Convert items to JSON format
+      payment_method: invoice.payment_method || '', // Use a default value if not present
+  }));
+};
+
+// If you want to export the invoices data initially, you might want to use a function to fetch it later
+export const invoicesData = await generateInvoices(); // Note: This will work in an async context, like within an async function
 
 const generateAppointments = () => {
     const appointments = [];
@@ -722,81 +731,44 @@ const generateAppointments = () => {
 };
 
 export const appointmentsData = generateAppointments();
-
-
-const generateTransactions = () => {
+const generateTransactions = async () => {
     const transactions = [];
     
-    const transactionDetails = [
-        {
-            date: 'Mar 12, 2022',
-            amount: 1000,
-            status: 'Paid',
-            method: 'Cash',
-        },
-        {
-            date: 'Aug 12, 2023',
-            amount: 2300,
-            status: 'Paid',
-            method: 'NHCF',
-        },
-        {
-            date: 'Jan 06, 2024',
-            amount: 1200,
-            status: 'Pending',
-            method: 'Britam',
-        },
-        {
-            date: 'Feb 18, 2025',
-            amount: 1400,
-            status: 'Cancel',
-            method: 'NHCF',
-        },
-        {
-            date: 'Mar 12, 2026',
-            amount: 1230,
-            status: 'Pending',
-            method: 'Cash',
-        },
-        {
-            date: 'Apr 12, 2027',
-            amount: 1000,
-            status: 'Paid',
-            method: 'NHCF',
-        },
-        {
-            date: 'May 12, 2028',
-            amount: 8900,
-            status: 'Cancel',
-            method: 'Britam',
-        },
-        {
-            date: 'Jun 12, 2029',
-            amount: 1000,
-            status: 'Pending',
-            method: 'Britam',
-        },
-    ];
+    try {
+        // Fetch payment data from the backend API
+        const response = await fetch('http://localhost:5000/api/payments'); // Adjust the URL as needed
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const paymentData = await response.json();
+        
+        // Assuming paymentData is an array of payment objects
+        for (let i = 0; i < paymentData.length; i++) {
+            const payment = paymentData[i];
+            const userIndex = i % memberData.length; // Loop through memberData
+            const doctorIndex = (i + 1) % memberData.length; // Get next member as doctor
 
-    for (let i = 0; i < transactionDetails.length; i++) {
-        const userIndex = i % memberData.length; // Loop through memberData
-        const doctorIndex = (i + 1) % memberData.length; // Get next member as doctor
-
-        transactions.push({
-            id: i + 1, // Unique ID for each transaction
-            user: memberData[userIndex], // Use current user from memberData
-            date: transactionDetails[i].date,
-            amount: transactionDetails[i].amount,
-            status: transactionDetails[i].status,
-            method: transactionDetails[i].method,
-            doctor: memberData[doctorIndex], // Use next member as doctor
-        });
+            transactions.push({
+                id: payment.id, // Unique ID from payment data
+                user: memberData[userIndex], // Use current user from memberData
+                date: payment.payment_date, // Date from payment data
+                amount: payment.amount, // Amount from payment data
+                status: payment.status, // Status from payment data
+                method: payment.method, // Method from payment data
+                doctor: memberData[doctorIndex], // Use next member as doctor
+            });
+        }
+    } catch (error) {
+        console.error('Failed to fetch payments:', error);
     }
 
     return transactions;
 };
 
+// Export transactionData as a promise
 export const transactionData = generateTransactions();
+
 
 export const dashboardCards = [
   {

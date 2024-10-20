@@ -29,11 +29,29 @@ export function Transactiontable({ data, action, functions }) {
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
-      onClick: () => {
-        toast.error('This feature is not available yet');
+      onClick: async (data) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this payment?");
+        if (confirmDelete) {
+          try {
+            const response = await fetch(`http://localhost:5000/api/payments/${data.id}`, {
+              method: 'DELETE',
+            });
+
+            if (response.ok) {
+              toast.success('Payment deleted successfully');
+              // Optionally, you can call a function to refresh the data or update state here
+              functions.refreshData(); // Ensure you have this function to refresh data
+            } else {
+              throw new Error('Failed to delete payment');
+            }
+          } catch (error) {
+            toast.error(error.message);
+          }
+        }
       },
     },
   ];
+
   return (
     <table className="table-auto w-full">
       <thead className="bg-dry rounded-md overflow-hidden">
@@ -43,7 +61,7 @@ export function Transactiontable({ data, action, functions }) {
           <th className={thclass}>Date</th>
           <th className={thclass}>Status</th>
           <th className={thclass}>
-            Amout <span className="text-xs font-light">(Tsh)</span>
+            Amount <span className="text-xs font-light">(Tsh)</span>
           </th>
           <th className={thclass}>Method</th>
           {action && <th className={thclass}>Actions</th>}
@@ -65,7 +83,6 @@ export function Transactiontable({ data, action, functions }) {
                     className="w-full h-12 rounded-full object-cover border border-border"
                   /> */}
                 </span>
-
                 <div>
                   {/* <h4 className="text-sm font-medium">{item.user.title}</h4> */}
                   {/* <p className="text-xs mt-1 text-textGray">
@@ -77,12 +94,13 @@ export function Transactiontable({ data, action, functions }) {
             <td className={tdclass}>{item.date}</td>
             <td className={tdclass}>
               <span
-                className={`py-1 px-4 ${item.status === 'Paid'
-                  ? 'bg-subMain text-subMain'
-                  : item.status === 'Pending'
+                className={`py-1 px-4 ${
+                  item.status === 'Paid'
+                    ? 'bg-subMain text-subMain'
+                    : item.status === 'Pending'
                     ? 'bg-orange-500 text-orange-500'
                     : item.status === 'Cancel' && 'bg-red-600 text-red-600'
-                  } bg-opacity-10 text-xs rounded-xl`}
+                } bg-opacity-10 text-xs rounded-xl`}
               >
                 {item.status}
               </span>
@@ -105,9 +123,12 @@ export function Transactiontable({ data, action, functions }) {
   );
 }
 
-// invoice table
-export function InvoiceTable({ data }) {
+export function InvoiceTable() {
   const navigate = useNavigate();
+  const [data, setData] = useState([]); // State to hold invoice data
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+
   const DropDown1 = [
     {
       title: 'Edit',
@@ -126,65 +147,115 @@ export function InvoiceTable({ data }) {
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
-      onClick: () => {
-        toast.error('This feature is not available yet');
+      onClick: async (item) => {
+        if (window.confirm('Are you sure you want to delete this invoice?')) {
+          try {
+            const response = await fetch(`http://localhost:5000/api/invoices/${item.id}`, {
+              method: 'DELETE',
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to delete the invoice');
+            }
+
+            // Remove the deleted item from the state
+            setData((prevData) => prevData.filter((invoice) => invoice.id !== item.id));
+            toast.success('Invoice deleted successfully');
+          } catch (error) {
+            toast.error(error.message);
+          }
+        }
       },
     },
   ];
+
+  // Fetch invoices from the API when the component mounts
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/invoices'); // Adjust the endpoint as necessary
+        if (!response.ok) {
+          throw new Error('Failed to fetch invoices');
+        }
+        const invoices = await response.json();
+        setData(invoices); // Set the fetched data
+      } catch (error) {
+        setError(error.message); // Set error message if fetching fails
+      } finally {
+        setLoading(false); // Set loading to false after the fetch attempt
+      }
+    };
+
+    fetchInvoices();
+  }, []); // Empty dependency array means this runs once when the component mounts
+
+  if (loading) {
+    return <div>Loading...</div>; // Loading state
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>; // Error handling
+  }
+
+  // Function to format date
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
   return (
-    <table className="table-auto w-full">
-      <thead className="bg-dry rounded-md overflow-hidden">
-        <tr>
-          <th className={thclass}>Invoice ID</th>
-          <th className={thclass}>Patient</th>
-          <th className={thclass}>Created Date</th>
-          <th className={thclass}>Due Date</th>
-          <th className={thclass}>
-            Amout <span className="text-xs font-light">(Tsh)</span>
-          </th>
-          <th className={thclass}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item) => (
-          <tr
-            key={item.id}
-            className="border-b border-border hover:bg-greyed transitions"
-          >
-            <td className={tdclass}>#{item?.id}</td>
-            <td className={tdclass}>
-              <div className="flex gap-4 items-center">
-                <span className="w-12">
-                  {/* <img
-                    // src={item?.to?.image}
-                    alt={item?.to?.title}
-                    className="w-full h-12 rounded-full object-cover border border-border"
-                  /> */}
-                </span>
-                <div>
-                  <h4 className="text-sm font-medium">{item?.to?.title}</h4>
-                  <p className="text-xs mt-1 text-textGray">
-                    {item?.to?.email}
-                  </p>
-                </div>
-              </div>
-            </td>
-            <td className={tdclass}>{item?.createdDate}</td>
-            <td className={tdclass}>{item?.dueDate}</td>
-            <td className={`${tdclass} font-semibold`}>{item?.total}</td>
-            <td className={tdclass}>
-              <MenuSelect datas={DropDown1} item={item}>
-                <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                  <BiDotsHorizontalRounded />
-                </div>
-              </MenuSelect>
-            </td>
+    <div className="overflow-auto" style={{ maxHeight: '400px' }}> {/* Add scrollable div */}
+      <table className="table-auto w-full">
+        <thead className="bg-dry rounded-md overflow-hidden">
+          <tr>
+            <th className={thclass}>Invoice ID</th>
+            <th className={thclass}>Destination</th>
+            <th className={thclass}>Created Date</th>
+            <th className={thclass}>Due Date</th>
+            <th className={thclass}>
+              Amount <span className="text-xs font-light">(Tsh)</span>
+            </th>
+            <th className={thclass}>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr
+              key={item.id}
+              className="border-b border-border hover:bg-greyed transitions"
+            >
+              <td className={tdclass}>#{item?.id}</td>
+              <td className={tdclass}>
+                <div className="flex gap-4 items-center">
+                  <span className="w-12">
+                    {/* Add image if needed */}
+                  </span>
+                  <div>
+                    <h4 className="text-sm font-medium">{item?.to?.name || item?.to?.title}</h4>
+                    <p className="text-xs mt-1 text-textGray">
+                      {item?.to?.email}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td className={tdclass}>{formatDate(item?.created_date)}</td>
+              <td className={tdclass}>{formatDate(item?.due_date)}</td>
+              <td className={`${tdclass} font-semibold`}>{item?.total_amount}</td>
+              <td className={tdclass}>
+                <MenuSelect datas={DropDown1} item={item}>
+                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                    <BiDotsHorizontalRounded />
+                  </div>
+                </MenuSelect>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
+
 
 export function MedicineTable({ data, onEdit, onDelete }) {
   const DropDown1 = [
