@@ -41,6 +41,18 @@ export const MenuDatas = [
     icon: TbUsers,
   },
   {
+    title: 'Payments',
+    path: '/payments',
+    icon: MdListAlt,
+  },
+
+  {
+    title: 'Appointments',
+    path: '/appointments',
+    icon: FaRegCalendarAlt,
+  },
+
+  {
     title: 'Receptions',
     path: '/receptions',
     icon: HiOutlineUsers,
@@ -49,22 +61,6 @@ export const MenuDatas = [
     title: 'Doctors',
     path: '/doctors',
     icon: RiUserHeartLine,
-  },
-
-  {
-    title: 'Appointments',
-    path: '/appointments',
-    icon: FaRegCalendarAlt,
-  },
-  {
-    title: 'Payments',
-    path: '/payments',
-    icon: MdListAlt,
-  },
-  {
-    title: 'Invoices',
-    path: '/invoices',
-    icon: TbFileInvoice,
   },
   {
     title: 'Services',
@@ -76,6 +72,12 @@ export const MenuDatas = [
     path: '/medicine',
     icon: RiMedicineBottleLine,
   },
+  {
+    title: 'Invoices',
+    path: '/invoices',
+    icon: TbFileInvoice,
+  },
+
   {
     title: 'Campaigns',
     path: '/campaigns',

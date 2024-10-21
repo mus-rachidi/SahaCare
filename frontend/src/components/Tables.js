@@ -10,7 +10,22 @@ import axios from 'axios';
 const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
 const tdclass = 'text-start text-sm py-4 px-2 whitespace-nowrap';
 
-export function Transactiontable({ data, action, functions }) {
+export function Transactiontable({ action, functions }) {
+  const [patients, setPatients] = useState([]);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/patients');
+        const data = await response.json();
+        setPatients(data);
+      } catch (error) {
+        toast.error('Failed to fetch patients');
+      }
+    };
+    fetchPatients();
+  }, []);
+
   const DropDown1 = [
     {
       title: 'Edit',
@@ -26,108 +41,86 @@ export function Transactiontable({ data, action, functions }) {
         functions.preview(data.id);
       },
     },
-    {
-      title: 'Delete',
-      icon: RiDeleteBin6Line,
-      onClick: async (data) => {
-        const confirmDelete = window.confirm("Are you sure you want to delete this payment?");
-        if (confirmDelete) {
-          try {
-            const response = await fetch(`http://localhost:5000/api/payments/${data.id}`, {
-              method: 'DELETE',
-            });
-
-            if (response.ok) {
-              toast.success('Payment deleted successfully');
-              // Optionally, you can call a function to refresh the data or update state here
-              functions.refreshData(); // Ensure you have this function to refresh data
-            } else {
-              throw new Error('Failed to delete payment');
-            }
-          } catch (error) {
-            toast.error(error.message);
-          }
-        }
-      },
-    },
   ];
 
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedTime = `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${ampm}`;
+    return `${formattedDate}, ${formattedTime}`;
+  };
+
   return (
-    <table className="table-auto w-full">
-      <thead className="bg-dry rounded-md overflow-hidden">
-        <tr>
-          <th className={thclass}>#</th>
-          <th className={thclass}>Patient</th>
-          <th className={thclass}>Date</th>
-          <th className={thclass}>Status</th>
-          <th className={thclass}>
-            Amount <span className="text-xs font-light">(Tsh)</span>
-          </th>
-          <th className={thclass}>Method</th>
-          {action && <th className={thclass}>Actions</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item, index) => (
-          <tr
-            key={item.id}
-            className="border-b border-border hover:bg-greyed transitions"
-          >
-            <td className={tdclass}>{index + 1}</td>
-            <td className={tdclass}>
-              <div className="flex gap-4 items-center">
-                <span className="w-12">
-                  {/* <img
-                    // src={item.user.image}
-                    alt={item.user.title}
-                    className="w-full h-12 rounded-full object-cover border border-border"
-                  /> */}
-                </span>
-                <div>
-                  {/* <h4 className="text-sm font-medium">{item.user.title}</h4> */}
-                  {/* <p className="text-xs mt-1 text-textGray">
-                    {item.user.phone}
-                  </p> */}
-                </div>
-              </div>
-            </td>
-            <td className={tdclass}>{item.date}</td>
-            <td className={tdclass}>
-              <span
-                className={`py-1 px-4 ${
-                  item.status === 'Paid'
-                    ? 'bg-subMain text-subMain'
-                    : item.status === 'Pending'
-                    ? 'bg-orange-500 text-orange-500'
-                    : item.status === 'Cancel' && 'bg-red-600 text-red-600'
-                } bg-opacity-10 text-xs rounded-xl`}
-              >
-                {item.status}
-              </span>
-            </td>
-            <td className={`${tdclass} font-semibold`}>{item.amount}</td>
-            <td className={tdclass}>{item.method}</td>
-            {action && (
-              <td className={tdclass}>
-                <MenuSelect datas={DropDown1} item={item}>
-                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                    <BiDotsHorizontalRounded />
-                  </div>
-                </MenuSelect>
-              </td>
-            )}
+    <div>
+      <table className="table-auto w-full mt-4">
+        <thead className="bg-dry rounded-md overflow-hidden">
+          <tr>
+            <th className={thclass}>#</th>
+            <th className={thclass}>Patient Name</th>
+            <th className={thclass}>Created At</th>
+            <th className={thclass}>Amount</th> {/* New column for Amount */}
+            <th className={thclass}>Status</th> {/* New column for Status */}
+            {action && <th className={thclass}>Actions</th>}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {patients.map((patient, index) => (
+            <tr key={patient.id} className="border-b border-border hover:bg-greyed transitions">
+              <td className={tdclass}>{index + 1}</td>
+              <td className={tdclass}>{patient.FullName}</td>
+              <td className={tdclass}>{formatDateTime(new Date().toISOString())}</td>
+              <td className={tdclass}>
+                {Number(patient.amount) > 0 ? (
+                  <span className="text-green-500">
+                    {(Number(patient.amount) || 0).toFixed(2)} MAD
+                  </span>
+                ) : (
+                  <span className="text-red-500">
+                    {(Number(patient.amount) || 0).toFixed(2)} MAD
+                  </span>
+                )}
+              </td>
+              <td className={tdclass}>
+                <span
+                  className={`
+            py-1 px-4 
+            rounded-xl 
+            text-xs 
+            bg-opacity-10 
+            ${patient.status === 'Paid' ? 'bg-green-500 text-green-500' : ''}
+            ${patient.status === 'Pending' ? 'bg-orange-500 text-orange-500' : ''}
+            ${patient.status === 'Cancel' ? 'bg-red-500 text-red-500' : ''}
+          `}
+                >
+                  {patient.status}
+                </span>
+              </td> {/* Displaying Status with color */}
+              {action && (
+                <td className={tdclass}>
+                  <MenuSelect datas={DropDown1} item={{ id: patient.id }}>
+                    <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                      <BiDotsHorizontalRounded />
+                    </div>
+                  </MenuSelect>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 export function InvoiceTable() {
   const navigate = useNavigate();
-  const [data, setData] = useState([]); // State to hold invoice data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const DropDown1 = [
     {
@@ -158,7 +151,6 @@ export function InvoiceTable() {
               throw new Error('Failed to delete the invoice');
             }
 
-            // Remove the deleted item from the state
             setData((prevData) => prevData.filter((invoice) => invoice.id !== item.id));
             toast.success('Invoice deleted successfully');
           } catch (error) {
@@ -169,28 +161,26 @@ export function InvoiceTable() {
     },
   ];
 
-  // Fetch invoices from the API when the component mounts
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/invoices'); // Adjust the endpoint as necessary
+        const response = await fetch('http://localhost:5000/api/invoices');
         if (!response.ok) {
           throw new Error('Failed to fetch invoices');
         }
         const invoices = await response.json();
-        setData(invoices); // Set the fetched data
+        setData(invoices);
       } catch (error) {
-        setError(error.message); // Set error message if fetching fails
+        setError(error.message);
       } finally {
-        setLoading(false); // Set loading to false after the fetch attempt
+        setLoading(false);
       }
     };
 
     fetchInvoices();
-  }, []); // Empty dependency array means this runs once when the component mounts
-
+  }, []);
   if (loading) {
-    return <div>Loading...</div>; // Loading state
+    return <div>Loading...</div>;
   }
 
   if (error) {
@@ -213,7 +203,7 @@ export function InvoiceTable() {
             <th className={thclass}>Created Date</th>
             <th className={thclass}>Due Date</th>
             <th className={thclass}>
-              Amount <span className="text-xs font-light">(Tsh)</span>
+              Amount <span className="text-xs font-light">(MAD)</span>
             </th>
             <th className={thclass}>Actions</th>
           </tr>
@@ -509,7 +499,7 @@ export function DoctorsTable({ data, functions, setData }) {
       try {
         const response = await axios.delete(`http://localhost:5000/api/doctors/${id}`);
         alert(response.data.message); // Show success message
-        
+
         // Update the state to remove the deleted doctor
         setData((prevData) => prevData.filter((doctor) => doctor.id !== id));
       } catch (err) {

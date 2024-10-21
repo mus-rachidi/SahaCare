@@ -162,6 +162,35 @@ const getPatientCounts = async (req, res) => {
     }
 };
 
+// Update only the amount and status for a patient by ID
+const updatePatientAmountAndStatus = async (req, res) => {
+    const { id } = req.params; // Get the patient ID from the request parameters
+    const { amount, status } = req.body; // Get the amount and status from the request body
+
+    // SQL query to update only amount and status fields
+    const sqlUpdate = `
+        UPDATE Patients
+        SET amount = ?, status = ?
+        WHERE id = ?
+    `;
+
+    try {
+        // Execute the query with the new amount, status, and the patient ID
+        const [result] = await promisePool.query(sqlUpdate, [amount, status, id]);
+
+        // If no rows were affected, the patient was not found
+        if (result.affectedRows === 0) {
+            return res.status(404).send("Patient not found");
+        }
+
+        // Respond with success message
+        res.send("Patient amount and status updated successfully");
+    } catch (err) {
+        // Handle any errors during the update
+        console.error("Error updating patient amount and status:", err);
+        res.status(500).send("Error updating patient amount and status");
+    }
+};
 
 
-module.exports = { getPatients,getPatientCounts, addPatient, updatePatient, deletePatient, getPatientById };
+module.exports = { updatePatientAmountAndStatus,getPatients,getPatientCounts, addPatient, updatePatient, deletePatient, getPatientById };

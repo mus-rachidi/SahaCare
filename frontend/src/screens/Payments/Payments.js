@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../Layout';
 import { Button, FromToDate, Select } from '../../components/Form';
 import { Transactiontable } from '../../components/Tables';
-import { sortsDatas } from '../../components/Datas'; // Removed transactionData import
+import { sortsDatas } from '../../components/Datas';
 import { BiChevronDown, BiTime } from 'react-icons/bi';
 import {
   MdFilterList,
@@ -14,11 +14,13 @@ import { BsCalendarMonth } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 
 function Payments() {
+
+
   const [status, setStatus] = useState(sortsDatas.status[0]);
   const [method, setMethod] = useState(sortsDatas.method[0]);
   const [dateRange, setDateRange] = useState([new Date(), new Date()]);
-  const [transactionData, setTransactionData] = useState([]); // State for transaction data
-  const [loading, setLoading] = useState(true); // State for loading
+  const [transactionData, setTransactionData] = useState([]); 
+  const [loading, setLoading] = useState(true); 
   const [startDate, endDate] = dateRange;
   const navigate = useNavigate();
 
@@ -37,7 +39,6 @@ function Payments() {
     },
   ];
 
-  // boxes
   const boxes = [
     {
       id: 1,
@@ -65,39 +66,36 @@ function Payments() {
   const editPayment = (id) => {
     navigate(`/payments/edit/${id}`);
   };
-  // preview
   const previewPayment = (id) => {
     navigate(`/payments/preview/${id}`);
   };
 
-  // Fetch transaction data from the API
   useEffect(() => {
     const fetchTransactionData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/payments'); // Adjust the URL as needed
+        const response = await fetch('http://localhost:5000/api/payments'); 
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        setTransactionData(data); // Set the fetched data to state
+        setTransactionData(data); 
       } catch (error) {
         console.error('Failed to fetch transaction data:', error);
         toast.error('Failed to load transaction data');
       } finally {
-        setLoading(false); // Set loading to false after data is fetched
+        setLoading(false); 
       }
     };
 
     fetchTransactionData();
-  }, []); // Empty dependency array to run on component mount
+  }, []); 
 
   if (loading) {
-    return <div>Loading...</div>; // Optional: Add a loading state
+    return <div>Loading...</div>; 
   }
 
   return (
     <Layout>
-      {/* add button */}
       <button
         onClick={() => {
           toast.error('Exporting is not available yet');
@@ -108,7 +106,6 @@ function Payments() {
         <MdOutlineCloudDownload className="text-2xl" />
       </button>
       <h1 className="text-xl font-semibold">Payments</h1>
-      {/* boxes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
         {boxes.map((box) => (
           <div
@@ -136,7 +133,6 @@ function Payments() {
           </div>
         ))}
       </div>
-      {/* datas */}
       <div
         data-aos="fade-up"
         data-aos-duration="1000"

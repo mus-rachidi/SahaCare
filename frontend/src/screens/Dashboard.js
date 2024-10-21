@@ -86,10 +86,10 @@ function Dashboard() {
             </div>
             {/* table */}
             <div className="mt-4 overflow-x-scroll">
-              <Transactiontable
+              {/* <Transactiontable
                 data={transactionData.slice(0, 5)}
                 action={false}
-              />
+              /> */}
             </div>
           </div>
         </div>

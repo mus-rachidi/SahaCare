@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS Patients (
     gender VARCHAR(10),
     blood VARCHAR(5),
     totalAppointments INT,
+    amount DECIMAL(10, 2) DEFAULT 0,
+    status ENUM('Paid', 'Pending', 'Cancel') DEFAULT 'Pending',
     date DATE
 );
 
@@ -69,19 +71,5 @@ CREATE TABLE IF NOT EXISTS Invoices (
     status ENUM('paid', 'unpaid', 'pending') NOT NULL,
     services_rendered JSON NOT NULL,  
     FOREIGN KEY (patient_id) REFERENCES Patients(id),
-    FOREIGN KEY (doctor_id) REFERENCES doctors(id)
-);
-
-CREATE TABLE IF NOT EXISTS payments (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT NOT NULL,
-    doctor_id BIGINT UNSIGNED NOT NULL, 
-    amount DECIMAL(10, 2) NOT NULL,
-    status ENUM('Paid', 'Pending', 'Cancel') DEFAULT 'Pending',
-    method VARCHAR(50),
-    payment_date DATE,
-    due_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (patient_id) REFERENCES Patients(id), 
     FOREIGN KEY (doctor_id) REFERENCES doctors(id)
 );

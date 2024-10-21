@@ -1,13 +1,12 @@
-// Get all payments
-
 const { promisePool } = require('../config/db');
+
+// Get all payments
 const getAllPayments = async (req, res) => {
     try {
         const [rows] = await promisePool.query(`
-            SELECT p.*, pa.FullName AS patient_name, d.fullName AS doctor_name 
-            FROM payments p 
-            JOIN Patients pa ON p.patient_id = pa.id 
-            JOIN doctors d ON p.doctor_id = d.id
+            SELECT p.id, pa.FullName AS patient_name, p.data, p.amount, p.status, p.created_at
+            FROM payments p
+            JOIN Patients pa ON p.patient_id = pa.id
         `);
         res.json(rows);
     } catch (err) {
@@ -21,10 +20,9 @@ const getPaymentById = async (req, res) => {
 
     try {
         const [rows] = await promisePool.query(`
-            SELECT p.*, pa.FullName AS patient_name, d.fullName AS doctor_name 
-            FROM payments p 
-            JOIN Patients pa ON p.patient_id = pa.id 
-            JOIN doctors d ON p.doctor_id = d.id 
+            SELECT p.id, pa.FullName AS patient_name, p.data, p.amount, p.status, p.created_at
+            FROM payments p
+            JOIN Patients pa ON p.patient_id = pa.id
             WHERE p.id = ?
         `, [id]);
 
@@ -40,13 +38,13 @@ const getPaymentById = async (req, res) => {
 
 // Create a new payment
 const createPayment = async (req, res) => {
-    const { patient_id, doctor_id, amount, status, method, payment_date, due_date } = req.body;
+    const { FullName, data } = req.body;
 
     try {
         const [result] = await promisePool.query(`
-            INSERT INTO payments (patient_id, doctor_id, amount, status, method, payment_date, due_date) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [patient_id, doctor_id, amount, status, method, payment_date, due_date]);
+            INSERT INTO payments (FullName, data) 
+            VALUES (?, ?)
+        `, [FullName, data]);
 
         res.status(201).json({ message: "Payment created successfully", paymentId: result.insertId });
     } catch (err) {
