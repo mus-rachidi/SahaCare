@@ -12,11 +12,19 @@ CREATE TABLE IF NOT EXISTS Patients (
     phone VARCHAR(15),
     age INT,
     gender VARCHAR(10),
-    blood VARCHAR(5),
     totalAppointments INT,
     amount DECIMAL(10, 2) DEFAULT 0,
     status ENUM('Paid', 'Pending', 'Cancel') DEFAULT 'Pending',
-    date DATE
+    PaymentDate DATE,
+    services VARCHAR(255) 
+);
+
+CREATE TABLE services (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    date DATE NOT NULL,
+    status ENUM('enable', 'disable') NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS doctors (
@@ -41,13 +49,7 @@ CREATE TABLE IF NOT EXISTS Receptions (
     image VARCHAR(255)
 );
 
-CREATE TABLE services (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    date DATE NOT NULL,
-    status ENUM('enable', 'disable') NOT NULL
-);
+
 
 DROP TABLE IF EXISTS Medicines;
 

@@ -90,10 +90,6 @@ function Payments() {
     fetchTransactionData();
   }, []); 
 
-  if (loading) {
-    return <div>Loading...</div>; 
-  }
-
   return (
     <Layout>
       <button

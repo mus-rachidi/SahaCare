@@ -17,9 +17,13 @@ export function Transactiontable({ action, functions }) {
     const fetchPatients = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/patients');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
         const data = await response.json();
         setPatients(data);
       } catch (error) {
+        console.error('Error fetching patients:', error);
         toast.error('Failed to fetch patients');
       }
     };
@@ -45,76 +49,82 @@ export function Transactiontable({ action, functions }) {
 
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date'; // Handle invalid date
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const formattedTime = `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${ampm}`;
-    return `${formattedDate}, ${formattedTime}`;
+    return `${formattedDate} - ${formattedTime}`;
   };
 
   return (
     <div>
-      <table className="table-auto w-full mt-4">
-        <thead className="bg-dry rounded-md overflow-hidden">
-          <tr>
-            <th className={thclass}>#</th>
-            <th className={thclass}>Patient Name</th>
-            <th className={thclass}>Created At</th>
-            <th className={thclass}>Amount</th> {/* New column for Amount */}
-            <th className={thclass}>Status</th> {/* New column for Status */}
-            {action && <th className={thclass}>Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {patients.map((patient, index) => (
-            <tr key={patient.id} className="border-b border-border hover:bg-greyed transitions">
-              <td className={tdclass}>{index + 1}</td>
-              <td className={tdclass}>{patient.FullName}</td>
-              <td className={tdclass}>{formatDateTime(new Date().toISOString())}</td>
-              <td className={tdclass}>
-                {Number(patient.amount) > 0 ? (
-                  <span className="text-green-500">
-                    {(Number(patient.amount) || 0).toFixed(2)} MAD
-                  </span>
-                ) : (
-                  <span className="text-red-500">
-                    {(Number(patient.amount) || 0).toFixed(2)} MAD
-                  </span>
-                )}
-              </td>
-              <td className={tdclass}>
-                <span
-                  className={`
-            py-1 px-4 
-            rounded-xl 
-            text-xs 
-            bg-opacity-10 
-            ${patient.status === 'Paid' ? 'bg-green-500 text-green-500' : ''}
-            ${patient.status === 'Pending' ? 'bg-orange-500 text-orange-500' : ''}
-            ${patient.status === 'Cancel' ? 'bg-red-500 text-red-500' : ''}
-          `}
-                >
-                  {patient.status}
-                </span>
-              </td> {/* Displaying Status with color */}
-              {action && (
-                <td className={tdclass}>
-                  <MenuSelect datas={DropDown1} item={{ id: patient.id }}>
-                    <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                      <BiDotsHorizontalRounded />
-                    </div>
-                  </MenuSelect>
-                </td>
-              )}
+      <div style={{ maxHeight: '400px', overflowY: 'auto' }}> {/* Set the height for scrolling */}
+        <table className="table-auto w-full mt-4">
+          <thead className="bg-dry rounded-md overflow-hidden">
+            <tr>
+              <th className={thclass}>#</th>
+              <th className={thclass}>Patient Name</th>
+              <th className={thclass}>Payment Date</th> {/* New column for Payment Date */}
+              <th className={thclass}>Amount</th>
+              <th className={thclass}>Status</th>
+              {action && <th className={thclass}>Actions</th>}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {patients.map((patient, index) => (
+              <tr key={patient.id} className="border-b border-border hover:bg-greyed transitions">
+                <td className={tdclass}>{index + 1}</td>
+                <td className={tdclass}>{patient.FullName}</td>
+                <td className={tdclass}>
+                  {patient.PaymentDate ? formatDateTime(patient.PaymentDate) : 'N/A'} {/* Display Payment Date */}
+                </td>
+                <td className={tdclass}>
+                  {Number(patient.amount) > 0 ? (
+                    <span className="text-green-500">
+                      {(Number(patient.amount) || 0).toFixed(2)} MAD
+                    </span>
+                  ) : (
+                    <span className="text-red-500">
+                      {(Number(patient.amount) || 0).toFixed(2)} MAD
+                    </span>
+                  )}
+                </td>
+                <td className={tdclass}>
+                  <span
+                    className={`
+                      py-1 px-4 
+                      rounded-xl 
+                      text-xs 
+                      bg-opacity-10 
+                      ${patient.status === 'Paid' ? 'bg-green-500 text-green-500' : ''}
+                      ${patient.status === 'Pending' ? 'bg-orange-500 text-orange-500' : ''}
+                      ${patient.status === 'Cancelled' ? 'bg-red-500 text-red-500' : ''}
+                    `}
+                  >
+                    {patient.status}
+                  </span>
+                </td>
+                {action && (
+                  <td className={tdclass}>
+                    <MenuSelect datas={DropDown1} item={{ id: patient.id }}>
+                      <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                        <BiDotsHorizontalRounded />
+                      </div>
+                    </MenuSelect>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
+
 
 export function InvoiceTable() {
   const navigate = useNavigate();

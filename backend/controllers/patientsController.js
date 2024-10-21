@@ -1,7 +1,6 @@
 const { promisePool } = require("../config/db"); // Assuming `promisePool` is exported from a database setup module
 const moment = require('moment'); // Make sure to install moment.js
 
-// Get all patients
 // Get all patients or search by full name
 const getPatients = async (req, res) => {
     const { search } = req.query; // Extract the search query from the request parameters
@@ -28,7 +27,7 @@ const getPatients = async (req, res) => {
 
 // Add a new patient
 const addPatient = async (req, res) => {
-    const { FullName, image, admin, email, phone, age, gender, blood, totalAppointments } = req.body;
+    const { FullName, image, admin, email, phone, age, gender, totalAppointments, services } = req.body;
 
     try {
         // Convert admin to an integer (0 or 1)
@@ -37,7 +36,6 @@ const addPatient = async (req, res) => {
         // Get the current date and format it for the database
         const currentDate = moment(); // Get the current date and time
         const formattedDate = currentDate.format("YYYY-MM-DD"); // Format for the database
-        const displayDate = currentDate.format("MMMM D, YYYY"); // Format for display
 
         // Step 1: Fetch all current patient IDs
         const [patients] = await promisePool.query("SELECT id FROM Patients");
@@ -51,13 +49,12 @@ const addPatient = async (req, res) => {
 
         // Step 3: Insert the new patient with the next available ID
         await promisePool.query(
-            `INSERT INTO Patients (id, FullName, image, admin, email, phone, age, gender, blood, totalAppointments, date)
+            `INSERT INTO Patients (id, FullName, image, admin, email, phone, age, gender, totalAppointments, PaymentDate, services)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [nextId, FullName, image, adminValue, email, phone, age, gender, blood, totalAppointments, formattedDate]
+            [nextId, FullName, image, adminValue, email, phone, age, gender, totalAppointments, formattedDate, services]
         );
 
-        // Return both the formatted date for display if needed
-        res.status(201).json({ message: 'Patient added successfully', displayDate });
+        res.status(201).json({ message: 'Patient added successfully' });
     } catch (err) {
         console.error("Error adding patient:", err);
         res.status(500).json({ error: "Error adding patient" });
@@ -67,15 +64,16 @@ const addPatient = async (req, res) => {
 // Update a patient by ID
 const updatePatient = async (req, res) => {
     const { id } = req.params;
-    const { FullName, age, gender, phone, email, blood, totalAppointments } = req.body;
+    const { FullName, age, gender, phone, email, totalAppointments, services, PaymentDate } = req.body;
+
     const sqlUpdate = `
         UPDATE Patients
-        SET FullName = ?, age = ?, gender = ?, phone = ?, email = ?, blood = ?, totalAppointments = ?
+        SET FullName = ?, age = ?, gender = ?, phone = ?, email = ?, totalAppointments = ?, PaymentDate = ?, services = ?
         WHERE id = ?
     `;
 
     try {
-        const [result] = await promisePool.query(sqlUpdate, [FullName, age, gender, phone, email, blood, totalAppointments, id]);
+        const [result] = await promisePool.query(sqlUpdate, [FullName, age, gender, phone, email, totalAppointments, PaymentDate, services, id]);
         if (result.affectedRows === 0) {
             return res.status(404).send("Patient not found");
         }
@@ -137,17 +135,17 @@ const getPatientCounts = async (req, res) => {
 
     try {
         const todayCountResult = await promisePool.query(
-            "SELECT COUNT(*) AS count FROM Patients WHERE DATE(date) = CURDATE()"
+            "SELECT COUNT(*) AS count FROM Patients WHERE DATE(PaymentDate) = CURDATE()"
         );
         console.log("Today Count Result:", todayCountResult); // Log query result
 
         const monthlyCountResult = await promisePool.query(
-            "SELECT COUNT(*) AS count FROM Patients WHERE MONTH(date) = MONTH(CURDATE()) AND YEAR(date) = YEAR(CURDATE())"
+            "SELECT COUNT(*) AS count FROM Patients WHERE MONTH(PaymentDate) = MONTH(CURDATE()) AND YEAR(PaymentDate) = YEAR(CURDATE())"
         );
         console.log("Monthly Count Result:", monthlyCountResult); // Log query result
 
         const yearlyCountResult = await promisePool.query(
-            "SELECT COUNT(*) AS count FROM Patients WHERE YEAR(date) = YEAR(CURDATE())"
+            "SELECT COUNT(*) AS count FROM Patients WHERE YEAR(PaymentDate) = YEAR(CURDATE())"
         );
         console.log("Yearly Count Result:", yearlyCountResult); // Log query result
 
@@ -164,33 +162,48 @@ const getPatientCounts = async (req, res) => {
 
 // Update only the amount and status for a patient by ID
 const updatePatientAmountAndStatus = async (req, res) => {
-    const { id } = req.params; // Get the patient ID from the request parameters
-    const { amount, status } = req.body; // Get the amount and status from the request body
+    const { id } = req.params;
+    const { amount, status, PaymentDate } = req.body; // Include PaymentDate
 
-    // SQL query to update only amount and status fields
+    // Log the incoming request data
+    console.log(`Received request to update patient with ID: ${id}`);
+    console.log(`Amount: ${amount}, Status: ${status}, Payment Date: ${PaymentDate}`);
+
+    // SQL query to update amount, status, and PaymentDate fields
     const sqlUpdate = `
         UPDATE Patients
-        SET amount = ?, status = ?
+        SET amount = ?, status = ?, PaymentDate = ?
         WHERE id = ?
     `;
 
     try {
-        // Execute the query with the new amount, status, and the patient ID
-        const [result] = await promisePool.query(sqlUpdate, [amount, status, id]);
+        // Log the SQL query
+        console.log(`Executing SQL: ${sqlUpdate} with values: [${amount}, ${status}, ${PaymentDate}, ${id}]`);
 
-        // If no rows were affected, the patient was not found
+        const [result] = await promisePool.query(sqlUpdate, [amount, status, PaymentDate, id]);
+
+        // Log the result of the query
+        console.log(`Query result:`, result);
+
         if (result.affectedRows === 0) {
             return res.status(404).send("Patient not found");
         }
 
-        // Respond with success message
-        res.send("Patient amount and status updated successfully");
+        res.send("Patient amount, status, and payment date updated successfully");
     } catch (err) {
-        // Handle any errors during the update
-        console.error("Error updating patient amount and status:", err);
-        res.status(500).send("Error updating patient amount and status");
+        // Log the error details
+        console.error("Error updating patient amount, status, and payment date:", err.message);
+        console.error("Full error object:", err);
+        res.status(500).send("Error updating patient amount, status, and payment date");
     }
 };
 
-
-module.exports = { updatePatientAmountAndStatus,getPatients,getPatientCounts, addPatient, updatePatient, deletePatient, getPatientById };
+module.exports = { 
+    updatePatientAmountAndStatus,
+    getPatients,
+    getPatientCounts,
+    addPatient,
+    updatePatient,
+    deletePatient,
+    getPatientById 
+};
