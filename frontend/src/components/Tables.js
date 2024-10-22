@@ -10,26 +10,8 @@ import axios from 'axios';
 const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
 const tdclass = 'text-start text-sm py-4 px-2 whitespace-nowrap';
 
-export function Transactiontable({ action, functions }) {
-  const [patients, setPatients] = useState([]);
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/patients');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        setPatients(data);
-      } catch (error) {
-        console.error('Error fetching patients:', error);
-        toast.error('Failed to fetch patients');
-      }
-    };
-    fetchPatients();
-  }, []);
-
+export function Transactiontable({ data, action, functions }) {
   const DropDown1 = [
     {
       title: 'Edit',
@@ -61,25 +43,25 @@ export function Transactiontable({ action, functions }) {
 
   return (
     <div>
-      <div style={{ maxHeight: '400px', overflowY: 'auto' }}> {/* Set the height for scrolling */}
+      <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
         <table className="table-auto w-full mt-4">
           <thead className="bg-dry rounded-md overflow-hidden">
             <tr>
               <th className={thclass}>#</th>
               <th className={thclass}>Patient Name</th>
-              <th className={thclass}>Payment Date</th> {/* New column for Payment Date */}
+              <th className={thclass}>Payment Date</th>
               <th className={thclass}>Amount</th>
               <th className={thclass}>Status</th>
               {action && <th className={thclass}>Actions</th>}
             </tr>
           </thead>
           <tbody>
-            {patients.map((patient, index) => (
+            {data.map((patient, index) => (
               <tr key={patient.id} className="border-b border-border hover:bg-greyed transitions">
                 <td className={tdclass}>{index + 1}</td>
                 <td className={tdclass}>{patient.FullName}</td>
                 <td className={tdclass}>
-                  {patient.PaymentDate ? formatDateTime(patient.PaymentDate) : 'N/A'} {/* Display Payment Date */}
+                  {patient.PaymentDate ? formatDateTime(patient.PaymentDate) : 'N/A'}
                 </td>
                 <td className={tdclass}>
                   {Number(patient.amount) > 0 ? (
@@ -101,7 +83,7 @@ export function Transactiontable({ action, functions }) {
                       bg-opacity-10 
                       ${patient.status === 'Paid' ? 'bg-green-500 text-green-500' : ''}
                       ${patient.status === 'Pending' ? 'bg-orange-500 text-orange-500' : ''}
-                      ${patient.status === 'Cancelled' ? 'bg-red-500 text-red-500' : ''}
+                      ${patient.status === 'Cancel' ? 'bg-red-500 text-red-500' : ''}
                     `}
                   >
                     {patient.status}
@@ -124,6 +106,7 @@ export function Transactiontable({ action, functions }) {
     </div>
   );
 }
+
 
 
 export function InvoiceTable() {

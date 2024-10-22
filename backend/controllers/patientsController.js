@@ -163,11 +163,17 @@ const getPatientCounts = async (req, res) => {
 // Update only the amount and status for a patient by ID
 const updatePatientAmountAndStatus = async (req, res) => {
     const { id } = req.params;
-    const { amount, status, PaymentDate } = req.body; // Include PaymentDate
+    const { amount, status, PaymentDate } = req.body;
 
-    // Log the incoming request data
+    const maxStatusLength = 20; // Set according to your database definition
+
     console.log(`Received request to update patient with ID: ${id}`);
     console.log(`Amount: ${amount}, Status: ${status}, Payment Date: ${PaymentDate}`);
+
+    // Validate status length
+    if (status.length > maxStatusLength) {
+        return res.status(400).send(`Status is too long. Maximum length is ${maxStatusLength}.`);
+    }
 
     // SQL query to update amount, status, and PaymentDate fields
     const sqlUpdate = `
@@ -197,6 +203,7 @@ const updatePatientAmountAndStatus = async (req, res) => {
         res.status(500).send("Error updating patient amount, status, and payment date");
     }
 };
+
 
 module.exports = { 
     updatePatientAmountAndStatus,

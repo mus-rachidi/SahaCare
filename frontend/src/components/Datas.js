@@ -237,7 +237,7 @@ export const sortsDatas = {
   status: [
     {
       id: 1,
-      name: 'Status...',
+      name: 'All',
     },
     {
       id: 2,
@@ -245,11 +245,11 @@ export const sortsDatas = {
     },
     {
       id: 3,
-      name: 'Approved',
+      name: 'Paid',
     },
     {
       id: 4,
-      name: 'Cancelled',
+      name: 'Cancel',
     },
   ],
   method: [

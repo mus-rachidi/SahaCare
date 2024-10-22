@@ -4,60 +4,41 @@ import { Button, FromToDate, Select } from '../../components/Form';
 import { Transactiontable } from '../../components/Tables';
 import { sortsDatas } from '../../components/Datas';
 import { BiChevronDown, BiTime } from 'react-icons/bi';
-import {
-  MdFilterList,
-  MdOutlineCalendarMonth,
-  MdOutlineCloudDownload,
-} from 'react-icons/md';
-import { toast } from 'react-hot-toast';
+import { MdOutlineCalendarMonth, MdOutlineCloudDownload } from 'react-icons/md';
 import { BsCalendarMonth } from 'react-icons/bs';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 function Payments() {
-
-
+  const [searchQuery, setSearchQuery] = useState('');
   const [status, setStatus] = useState(sortsDatas.status[0]);
-  const [method, setMethod] = useState(sortsDatas.method[0]);
-  const [dateRange, setDateRange] = useState([new Date(), new Date()]);
-  const [transactionData, setTransactionData] = useState([]); 
-  const [loading, setLoading] = useState(true); 
-  const [startDate, endDate] = dateRange;
+  const [transactionData, setTransactionData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filteredData, setFilteredData] = useState([]);
+  const [todayPayments, setTodayPayments] = useState(0);
+  const [monthlyPayments, setMonthlyPayments] = useState(0);
+  const [yearlyPayments, setYearlyPayments] = useState(0);
   const navigate = useNavigate();
-
-  const sorts = [
-    {
-      id: 2,
-      selected: status,
-      setSelected: setStatus,
-      datas: sortsDatas.status,
-    },
-    {
-      id: 3,
-      selected: method,
-      setSelected: setMethod,
-      datas: sortsDatas.method,
-    },
-  ];
 
   const boxes = [
     {
       id: 1,
       title: 'Today Payments',
-      value: '4,42,236',
+      value: todayPayments.toLocaleString(),
       color: ['bg-subMain', 'text-subMain'],
       icon: BiTime,
     },
     {
       id: 2,
       title: 'Monthly Payments',
-      value: '12,42,500',
+      value: monthlyPayments.toLocaleString(),
       color: ['bg-orange-500', 'text-orange-500'],
       icon: BsCalendarMonth,
     },
     {
       id: 3,
       title: 'Yearly Payments',
-      value: '345,70,000',
+      value: yearlyPayments.toLocaleString(),
       color: ['bg-green-500', 'text-green-500'],
       icon: MdOutlineCalendarMonth,
     },
@@ -66,29 +47,95 @@ function Payments() {
   const editPayment = (id) => {
     navigate(`/payments/edit/${id}`);
   };
+
   const previewPayment = (id) => {
     navigate(`/payments/preview/${id}`);
+  };
+
+  const calculateStatistics = (filteredData) => {
+    const today = new Date();
+    let todayTotal = 0;
+    let monthlyTotal = 0;
+    let yearlyTotal = 0;
+
+    filteredData.forEach((transaction) => {
+      const amount = parseFloat(transaction.amount);
+      const transactionDate = new Date(transaction.date); // Corrected to reference the date property
+
+      if (!isNaN(amount) && !isNaN(transactionDate.getTime())) {
+        // Check if the transaction is from today
+        if (
+          transactionDate.getDate() === today.getDate() &&
+          transactionDate.getMonth() === today.getMonth() &&
+          transactionDate.getFullYear() === today.getFullYear()
+        ) {
+          todayTotal += amount;
+        }
+
+        // Check if the transaction is from this month
+        if (
+          transactionDate.getMonth() === today.getMonth() &&
+          transactionDate.getFullYear() === today.getFullYear()
+        ) {
+          monthlyTotal += amount;
+        }
+
+        // Check if the transaction is from this year
+        if (transactionDate.getFullYear() === today.getFullYear()) {
+          yearlyTotal += amount;
+        }
+      }
+    });
+
+    return { todayTotal, monthlyTotal, yearlyTotal };
   };
 
   useEffect(() => {
     const fetchTransactionData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/payments'); 
+        const response = await fetch('http://localhost:5000/api/patients');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        setTransactionData(data); 
+        setTransactionData(data);
       } catch (error) {
         console.error('Failed to fetch transaction data:', error);
         toast.error('Failed to load transaction data');
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
     fetchTransactionData();
-  }, []); 
+  }, []);
+
+  useEffect(() => {
+    if (transactionData.length > 0) {
+      const { todayTotal, monthlyTotal, yearlyTotal } = calculateStatistics(transactionData);
+      setTodayPayments(todayTotal);
+      setMonthlyPayments(monthlyTotal);
+      setYearlyPayments(yearlyTotal);
+    }
+  }, [transactionData]);
+
+  useEffect(() => {
+    const filtered = transactionData.filter((transaction) => {
+      const fullNameMatch = transaction.FullName
+        ? transaction.FullName.toLowerCase().includes(searchQuery.toLowerCase())
+        : false;
+
+      const statusMatch =
+        status.id === 1 || // For 'Status...' option
+        (status.id === 2 && transaction.status === 'Pending') || // For 'Pending'
+        (status.id === 3 && transaction.status === 'Paid') || // For 'Paid'
+        (status.id === 4 && transaction.status === 'Cancel'); // For 'Cancel'
+
+      return fullNameMatch && statusMatch;
+    });
+
+    setFilteredData(filtered);
+  }, [searchQuery, status, transactionData]);
 
   return (
     <Layout>
@@ -139,42 +186,26 @@ function Payments() {
         <div className="grid lg:grid-cols-5 grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-2">
           <input
             type="text"
-            placeholder='Search "Patients"'
-            className="h-14 text-sm text-main rounded-md bg-dry border border-border px-4"
+            placeholder='Search'
+            className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          {/* sort  */}
-          {sorts.map((item) => (
-            <Select
-              key={item.id}
-              selectedPerson={item.selected}
-              setSelectedPerson={item.setSelected}
-              datas={item.datas}
-            >
-              <div className="h-14 w-full text-xs text-main rounded-md bg-dry border border-border px-4 flex items-center justify-between">
-                <p>{item.selected.name}</p>
-                <BiChevronDown className="text-xl" />
-              </div>
-            </Select>
-          ))}
-          {/* date */}
-          <FromToDate
-            startDate={startDate}
-            endDate={endDate}
-            bg="bg-dry"
-            onChange={(update) => setDateRange(update)}
-          />
-          {/* export */}
-          <Button
-            label="Filter"
-            Icon={MdFilterList}
-            onClick={() => {
-              toast.error('Filter data is not available yet');
-            }}
-          />
+          <Select
+            selectedPerson={status}
+            setSelectedPerson={setStatus}
+            className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
+            datas={sortsDatas.status}
+          >
+            <div className="h-14 w-full text-xs text-main rounded-md bg-dry border border-border px-4 flex items-center justify-between">
+              <p>{status.name}</p>
+              <BiChevronDown className="text-xl" />
+            </div>
+          </Select>
         </div>
         <div className="mt-8 w-full overflow-x-scroll">
           <Transactiontable
-            data={transactionData} // Use the fetched transaction data
+            data={filteredData}
             action={true}
             functions={{
               edit: editPayment,

@@ -10,11 +10,11 @@ import { BsSave } from 'react-icons/bs';
 const statuses = [
   { name: 'Paid', value: 'Paid' },
   { name: 'Pending', value: 'Pending' },
-  { name: 'Cancelled', value: 'Cancelled' },
+  { name: 'Cancel', value: 'Cancel' },
 ];
 
 function EditPayment() {
-  const { id } = useParams(); // Get payment ID from URL parameters
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const [amount, setAmount] = useState('');
   const [status, setStatus] = useState('');
@@ -46,13 +46,21 @@ function EditPayment() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const updatedAmount = amount && amount > 0 ? parseFloat(amount) + parseFloat(amount) : 0;
 
+    const parsedAmount = parseFloat(amount);
+    
+    // Validation: Don't allow status 'Paid' with amount 0
+    if (status === 'Paid' && parsedAmount === 0) {
+      toast.error('Cannot set status to Paid with an amount of 0.');
+      return;
+    }
+
+    try {
+      const updatedAmount = !isNaN(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0;
       await axios.put(`http://localhost:5000/api/patients/${id}/amount-status`, {
-        amount: updatedAmount, // Set updated amount
+        amount: updatedAmount,
         status: status.value || status,
-        PaymentDate, // Include payment date in submission
+        PaymentDate,
       });
       toast.success('Payment updated successfully!');
       navigate('/payments');
