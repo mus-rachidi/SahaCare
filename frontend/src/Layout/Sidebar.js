@@ -54,7 +54,7 @@ function Sidebar() {
     >
       <Link to="/">
         <img
-          src="/images/logo9.png"
+          src="/images/logo12.png"
           alt="logo"
           className="w-2/4 h-12 ml-4 object-contain"
         />

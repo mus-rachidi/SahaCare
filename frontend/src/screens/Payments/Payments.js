@@ -52,22 +52,20 @@ function Payments() {
     navigate(`/payments/preview/${id}`);
   };
 
-  const calculateStatistics = (filteredData) => {
+  const calculateStatistics = (data) => {
     const today = new Date();
     let todayTotal = 0;
     let monthlyTotal = 0;
     let yearlyTotal = 0;
 
-    filteredData.forEach((transaction) => {
+    data.forEach((transaction) => {
       const amount = parseFloat(transaction.amount);
-      const transactionDate = new Date(transaction.date); // Corrected to reference the date property
+      const transactionDate = new Date(transaction.date); // Ensure this points to the correct date field
 
       if (!isNaN(amount) && !isNaN(transactionDate.getTime())) {
         // Check if the transaction is from today
         if (
-          transactionDate.getDate() === today.getDate() &&
-          transactionDate.getMonth() === today.getMonth() &&
-          transactionDate.getFullYear() === today.getFullYear()
+          transactionDate.toDateString() === today.toDateString()
         ) {
           todayTotal += amount;
         }
