@@ -15,6 +15,7 @@ def generate_patient_data():
     age = random.randint(18, 90)
     gender = random.choice(['Male', 'Female', 'Other'])
     amount = round(random.uniform(50.0, 1000.0), 2)
+    price = round(random.uniform(50.0, 1000.0), 2)
     status = random.choice(['Paid', 'Pending', 'Cancel'])
     payment_date = fake.date_between(start_date='-1y', end_date='today')
     
@@ -26,12 +27,13 @@ def generate_patient_data():
         'age': age,
         'gender': gender,
         'amount': amount,
+        'price': price,
         'status': status,
         'PaymentDate': str(payment_date),
     }
 
 # Loop to generate 100 patients and send a POST request via curl
-for i in range(1000):
+for i in range(10):
     patient_data = generate_patient_data()
     
     # Form the curl command
@@ -46,6 +48,7 @@ for i in range(1000):
         "age": {patient_data['age']},
         "gender": "{patient_data['gender']}",
         "amount": {patient_data['amount']},
+        "price": {patient_data['price']},
         "status": "{patient_data['status']}",
         "PaymentDate": "{patient_data['PaymentDate']}"
     }}'

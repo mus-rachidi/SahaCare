@@ -19,6 +19,7 @@ function PersonalInfo({ titles }) {
   const addressRef = useRef('123 Main St'); // Default value
   const [dob, setDob] = useState('');
   const [age, setAge] = useState('');
+  const [price, setPrice] = useState(''); // State for price
 
   const handleDobChange = (event) => {
     const date = new Date(event.target.value);
@@ -45,10 +46,10 @@ function PersonalInfo({ titles }) {
       age: age || 0, // Default age
       gender: genderRef.current.name || 'Not specified', // Default gender
       address: addressRef.current.value || '123 Main St', // Default address
+      price: price || 0, // Add price to patient data
       totalAppointments: 0, // Default total appointments
       date: dob || '2024-01-01', // Default date (or you can set it to the current date)
     };
-    
 
     try {
       const response = await fetch('http://localhost:5000/api/patients', {
@@ -114,7 +115,6 @@ function PersonalInfo({ titles }) {
           ref={phoneRef} 
           type="tel" 
           placeholder="Phone Number" 
-           
           className="input-class p-4 border border-gray-300 rounded-lg focus:border-blue-500" 
         />
       </div>
@@ -126,7 +126,6 @@ function PersonalInfo({ titles }) {
           ref={emailRef} 
           type="email" 
           placeholder="Email" 
-           
           className="input-class p-4 border border-gray-300 rounded-lg focus:border-blue-500" 
         />
       </div>
@@ -138,7 +137,6 @@ function PersonalInfo({ titles }) {
           ref={addressRef} 
           type="text" 
           placeholder="Address" 
-           
           className="input-class p-4 border border-gray-300 rounded-lg focus:border-blue-500" 
         />
       </div>
@@ -165,7 +163,19 @@ function PersonalInfo({ titles }) {
           value={dob}
           onChange={handleDobChange}
           className="input-class p-4 border border-gray-300 rounded-lg focus:border-blue-500"
-          
+        />
+      </div>
+
+      {/* Price */}
+      <div className="flex flex-col w-full gap-3">
+        <p className="text-black text-sm">Price (MAD)</p>
+        <input
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          required
+          className="input-class p-4 border border-gray-300 rounded-lg focus:border-blue-500"
+          placeholder="Enter Price"
         />
       </div>
 

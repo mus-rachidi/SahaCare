@@ -66,7 +66,7 @@ function MedicalRecord() {
             {/* price */}
             <div className="col-span-12 md:col-span-2">
               <p className="text-xs text-subMain font-semibold">
-                <span className="font-light text-main">(Tsh)</span>{' '}
+                <span className="font-light text-main">(MAD)</span>{' '}
                 {data?.amount}
               </p>
             </div>

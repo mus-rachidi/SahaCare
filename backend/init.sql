@@ -2,7 +2,6 @@ CREATE DATABASE IF NOT EXISTS healthcare;
 
 USE healthcare;
 
--- Existing Tables
 CREATE TABLE IF NOT EXISTS Patients (
     id INT AUTO_INCREMENT PRIMARY KEY,
     FullName VARCHAR(50),
@@ -16,8 +15,10 @@ CREATE TABLE IF NOT EXISTS Patients (
     amount DECIMAL(10, 2) DEFAULT 0,
     status ENUM('Paid', 'Pending', 'Cancel') DEFAULT 'Pending',
     PaymentDate DATE,
-    services VARCHAR(255) 
+    services VARCHAR(255),
+    price DECIMAL(10, 2) DEFAULT 0
 );
+
 
 CREATE TABLE services (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -75,3 +76,4 @@ CREATE TABLE IF NOT EXISTS Invoices (
     FOREIGN KEY (patient_id) REFERENCES Patients(id),
     FOREIGN KEY (doctor_id) REFERENCES doctors(id)
 );
+

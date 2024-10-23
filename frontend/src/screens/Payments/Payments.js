@@ -8,6 +8,8 @@ import { MdOutlineCalendarMonth, MdOutlineCloudDownload } from 'react-icons/md';
 import { BsCalendarMonth } from 'react-icons/bs';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf'; // Import jsPDF
+import 'jspdf-autotable'; // Import autoTable plugin
 
 function Payments() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,14 +65,10 @@ function Payments() {
       const transactionDate = new Date(transaction.date); // Ensure this points to the correct date field
 
       if (!isNaN(amount) && !isNaN(transactionDate.getTime())) {
-        // Check if the transaction is from today
-        if (
-          transactionDate.toDateString() === today.toDateString()
-        ) {
+        if (transactionDate.toDateString() === today.toDateString()) {
           todayTotal += amount;
         }
 
-        // Check if the transaction is from this month
         if (
           transactionDate.getMonth() === today.getMonth() &&
           transactionDate.getFullYear() === today.getFullYear()
@@ -78,7 +76,6 @@ function Payments() {
           monthlyTotal += amount;
         }
 
-        // Check if the transaction is from this year
         if (transactionDate.getFullYear() === today.getFullYear()) {
           yearlyTotal += amount;
         }
@@ -86,6 +83,34 @@ function Payments() {
     });
 
     return { todayTotal, monthlyTotal, yearlyTotal };
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text('Payment Transactions', 14, 10);
+    
+    const tableColumn = ['ID', 'Full Name', 'Amount', 'Status', 'Date'];
+    const tableRows = [];
+
+    filteredData.forEach((transaction) => {
+      const transactionData = [
+        transaction.id,
+        transaction.FullName,
+        transaction.amount,
+        transaction.status,
+        new Date(transaction.date).toLocaleDateString(), // Format the date
+      ];
+      tableRows.push(transactionData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+
+    doc.save('payments_report.pdf');
   };
 
   useEffect(() => {
@@ -138,9 +163,7 @@ function Payments() {
   return (
     <Layout>
       <button
-        onClick={() => {
-          toast.error('Exporting is not available yet');
-        }}
+        onClick={exportToPDF}
         className="w-16 hover:w-44 group transitions hover:h-14 h-16 border border-border z-50 bg-subMain text-white rounded-full flex-rows gap-4 fixed bottom-8 right-12 button-fb"
       >
         <p className="hidden text-sm group-hover:block">Export</p>
@@ -184,7 +207,7 @@ function Payments() {
         <div className="grid lg:grid-cols-5 grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-2">
           <input
             type="text"
-            placeholder='Search'
+            placeholder="Search"
             className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

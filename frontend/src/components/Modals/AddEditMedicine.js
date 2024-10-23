@@ -69,7 +69,7 @@ function AddEditMedicineModal({ closeModal, isOpen, datas, addOrUpdateMedicine }
 
         <div className="grid sm:grid-cols-2 gap-4 w-full">
           <div className="flex flex-col">
-            <label className="text-black text-sm">Price (Tsh)</label>
+            <label className="text-black text-sm">Price (MAD))</label>
             <input
               type="number"
               value={price}

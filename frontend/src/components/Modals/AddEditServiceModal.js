@@ -75,7 +75,7 @@ function AddEditServiceModal({ closeModal, isOpen, datas }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Price (Tsh)</label>
+          <label className="block text-sm font-medium text-gray-700">Price (MAD))</label>
           <input
             type="number"
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"

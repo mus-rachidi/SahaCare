@@ -9,7 +9,7 @@ dev-start:
 dev-stop:
 	$(DOCKER_COMPOSE_DEV) down
 
-dev-restart: dev-stop dev-start
+dev-restart: dev-stop dev-start -d
 
 clean:
 	docker system prune --force	

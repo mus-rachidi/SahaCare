@@ -41,6 +41,9 @@ export function Transactiontable({ data, action, functions }) {
     return `${formattedDate} - ${formattedTime}`;
   };
 
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap'; // Ensure this is defined
+  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap'; // Ensure this is defined
+
   return (
     <div>
       <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -51,6 +54,7 @@ export function Transactiontable({ data, action, functions }) {
               <th className={thclass}>Patient Name</th>
               <th className={thclass}>Payment Date</th>
               <th className={thclass}>Amount</th>
+              <th className={thclass}>Price</th> {/* New Price Column */}
               <th className={thclass}>Status</th>
               {action && <th className={thclass}>Actions</th>}
             </tr>
@@ -71,6 +75,17 @@ export function Transactiontable({ data, action, functions }) {
                   ) : (
                     <span className="text-red-500">
                       {(Number(patient.amount) || 0).toFixed(2)} MAD
+                    </span>
+                  )}
+                </td>
+                <td className={tdclass}> {/* New Price Column Data */}
+                  {Number(patient.price) > 0 ? (
+                    <span className="text-green-500">
+                      {(Number(patient.price) || 0).toFixed(2)} MAD
+                    </span>
+                  ) : (
+                    <span className="text-red-500">
+                      {(Number(patient.price) || 0).toFixed(2)} MAD
                     </span>
                   )}
                 </td>
@@ -106,6 +121,7 @@ export function Transactiontable({ data, action, functions }) {
     </div>
   );
 }
+
 
 
 
@@ -276,7 +292,7 @@ export function MedicineTable({ data, onEdit, onDelete }) {
           <tr>
             <th className={thclass}>Name</th>
             <th className={thclass}>
-              Price <span className="text-xs font-light">(Tsh)</span>
+              Price <span className="text-xs font-light">(MAD)</span>
             </th>
             <th className={thclass}>Status</th>
             <th className={thclass}>In Stock</th>
@@ -364,7 +380,7 @@ export function ServiceTable({ data, onEdit, setData }) {
             <th className={thclass}>Name</th>
             <th className={thclass}>Created At</th>
             <th className={thclass}>
-              Price <span className="text-xs font-light">(Tsh)</span>
+              Price <span className="text-xs font-light">(MAD)</span>
             </th>
             <th className={thclass}>Status</th>
             <th className={thclass}>Actions</th>
@@ -403,42 +419,41 @@ export function ServiceTable({ data, onEdit, setData }) {
 export function PatientTable({ data, setData, functions, used }) {
   const DropDown1 = !used
     ? [
-      {
-        title: 'View',
-        icon: FiEye,
-        onClick: (data) => {
-          functions.preview(data.id);
+        {
+          title: 'View',
+          icon: FiEye,
+          onClick: (data) => {
+            functions.preview(data.id);
+          },
         },
-      },
-      {
-        title: 'Delete',
-        icon: RiDeleteBin6Line,
-        onClick: async (item) => {
-          if (window.confirm('Are you sure you want to delete this patient?')) {
-            try {
-              const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
-              alert(response.data.message); // Show success message
+        {
+          title: 'Delete',
+          icon: RiDeleteBin6Line,
+          onClick: async (item) => {
+            if (window.confirm('Are you sure you want to delete this patient?')) {
+              try {
+                const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
+                alert(response.data.message); // Show success message
 
-              // Remove the deleted item from the data state
-              setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
-
-            } catch (error) {
-              console.error('Error deleting patient:', error);
-              alert('Error deleting patient'); // Show error message
+                // Remove the deleted item from the data state
+                setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
+              } catch (error) {
+                console.error('Error deleting patient:', error);
+                alert('Error deleting patient'); // Show error message
+              }
             }
-          }
+          },
         },
-      },
-    ]
+      ]
     : [
-      {
-        title: 'View',
-        icon: FiEye,
-        onClick: (data) => {
-          functions.preview(data.id);
+        {
+          title: 'View',
+          icon: FiEye,
+          onClick: (data) => {
+            functions.preview(data.id);
+          },
         },
-      },
-    ];
+      ];
 
   const thclasse = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
   const tdclasse = 'text-start text-xs py-4 px-2 whitespace-nowrap';
@@ -462,7 +477,7 @@ export function PatientTable({ data, setData, functions, used }) {
             <td className={tdclasse}>{item.id}</td>
             <td className={tdclasse}>{item.FullName}</td>
             <td className={tdclasse}>{item.phone}</td>
-            <td className={tdclasse}>{moment(item.date).format('MMMM D, YYYY')}</td>
+            <td className={tdclasse}>{moment(item.date).format('MMMM D, YYYY - h:mm A')}</td>
             <td className={tdclasse}>{item.age}</td>
             <td className={tdclasse}>
               <span
@@ -484,6 +499,7 @@ export function PatientTable({ data, setData, functions, used }) {
     </table>
   );
 }
+
 
 export function DoctorsTable({ data, functions, setData }) {
   const deleteDoctor = async (id) => {
@@ -830,12 +846,12 @@ export function InvoiceProductsTable({ data, functions, button }) {
           <th className={thclass}>Item</th>
           <th className={thclass}>
             Item Price
-            <span className="text-xs font-light ml-1">(Tsh)</span>
+            <span className="text-xs font-light ml-1">(MAD)</span>
           </th>
           <th className={thclass}>Quantity</th>
           <th className={thclass}>
             Amout
-            <span className="text-xs font-light ml-1">(Tsh)</span>
+            <span className="text-xs font-light ml-1">(MAD)</span>
           </th>
           {button && <th className={thclass}>Actions</th>}
         </tr>
@@ -879,14 +895,14 @@ export function MedicineDosageTable({ data, functions, button }) {
           <th className={thclasse}>Item</th>
           <th className={thclasse}>
             Item Price
-            <span className="text-xs font-light ml-1">(Tsh)</span>
+            <span className="text-xs font-light ml-1">(MAD)</span>
           </th>
           <th className={thclasse}>Dosage</th>
           <th className={thclasse}>Instraction</th>
           <th className={thclasse}>Quantity</th>
           <th className={thclasse}>
             Amout
-            <span className="text-xs font-light ml-1">(Tsh)</span>
+            <span className="text-xs font-light ml-1">(MAD)</span>
           </th>
           {button && <th className={thclasse}>Actions</th>}
         </tr>
