@@ -24,7 +24,7 @@ function EditPayment() {
   });
   const [patientName, setPatientName] = useState('');
   const [loading, setLoading] = useState(true);
-  const [price, setPrice] = useState(0); // Set initial price state to 0
+  const [price, setPrice] = useState(0); // Ensure price is a number
 
   // Fetch payment data for the selected patient
   useEffect(() => {
@@ -34,7 +34,7 @@ function EditPayment() {
         setAmount(data.amount); // Set initial amount from API
         setStatus(data.status);
         setPatientName(data.FullName); // Set patient's full name from the API
-        setPrice(data.price); // Set price from API data
+        setPrice(Number(data.price)); // Ensure price is set as a number
       } catch (error) {
         console.error('Failed to fetch payment data:', error);
         toast.error('Unable to load payment data. Please try again.');
@@ -50,15 +50,11 @@ function EditPayment() {
     e.preventDefault();
 
     const parsedAmount = parseFloat(amount);
+    const parsedPrice = price; // Already a number
 
     // Validation: Don't allow status 'Paid' with amount not equal to price
-    if (status === 'Paid' && parsedAmount !== price) {
-      toast.error(`Cannot set status to Paid unless the amount is equal to ${price}.`);
-      return;
-    }
-
-    if (parsedAmount > price) {
-      toast.error(`Amount cannot exceed the price of ${price}.`);
+    if (status === 'Paid' && parsedAmount !== parsedPrice) {
+      toast.error(`Cannot set status to Paid unless amount is equal to price (${parsedPrice}).`);
       return;
     }
 
@@ -76,6 +72,9 @@ function EditPayment() {
       toast.error('Payment update failed. Please try again.');
     }
   };
+
+  // Disable 'Paid' option if amount is not equal to price
+  const isPaidDisabled = parseFloat(amount) !== price;
 
   return (
     <Layout>
@@ -104,7 +103,7 @@ function EditPayment() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Price</label>
             <div className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm bg-gray-100 p-2 text-gray-700">
-              {price}
+              {price.toFixed(2)} {/* Format price to two decimal places */}
             </div>
           </div>
 
@@ -114,7 +113,7 @@ function EditPayment() {
             <input
               type="number"
               id="amount"
-              // value={amount}
+              value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="mt-2 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               placeholder="Enter payment amount"
@@ -130,8 +129,10 @@ function EditPayment() {
             <Select
               selectedPerson={status}
               setSelectedPerson={(selected) => setStatus(selected.value)}
-              datas={statuses}
-              disabled={parseFloat(amount) !== price} // Disable dropdown if amount is not equal to price
+              datas={statuses.map((status) => ({
+                ...status,
+                disabled: status.value === 'Paid' && isPaidDisabled // Disable 'Paid' if amount is not equal to price
+              }))}
             >
               <div className="h-12 w-full flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-transparent text-sm">
                 <span>
