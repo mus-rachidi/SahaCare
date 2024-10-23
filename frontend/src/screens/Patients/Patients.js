@@ -1,48 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../Layout';
 import { memberData } from '../../components/Datas';
-import { Link, useNavigate, useLocation } from 'react-router-dom'; 
-import { BiPlus, BiTime } from 'react-icons/bi';
-import { BsCalendarMonth } from 'react-icons/bs';
-import { MdFilterList, MdOutlineCloudDownload } from 'react-icons/md';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { BiPlus } from 'react-icons/bi';
+import { MdOutlineCloudDownload } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import { Button } from '../../components/Form';
 import { PatientTable } from '../../components/Tables';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable'; 
-
-export const sortsDatas = {
-  genderFilter: [
-    {
-      id: 1,
-      name: 'Gender...',
-    },
-    {
-      id: 2,
-      name: 'Female',
-    },
-    {
-      id: 3,
-      name: 'Male',
-    },
-  ],
-};
+import 'jspdf-autotable';
 
 function Patients() {
-  const [searchQuery, setSearchQuery] = useState(''); 
-  const [genderFilter, setGenderFilter] = useState(''); // State for gender filter
-  const [filteredData, setFilteredData] = useState(memberData); 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [serviceFilter, setServiceFilter] = useState(''); // State for service filter
+  const [filteredData, setFilteredData] = useState(memberData);
   const [patientCounts, setPatientCounts] = useState({ today: 0, monthly: 0, yearly: 0 });
+  const [services, setServices] = useState([]); // State for services
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
 
   const fetchPatientData = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/patients');
       const data = await response.json();
-      setFilteredData(data); 
+      setFilteredData(data); // Set fetched patient data
     } catch (error) {
       toast.error('Error fetching patient data');
+    }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/services');
+      const data = await response.json();
+      setServices(data); // Set fetched services
+    } catch (error) {
+      toast.error('Error fetching services');
     }
   };
 
@@ -50,81 +43,56 @@ function Patients() {
     try {
       const response = await fetch('http://localhost:5000/api/counts');
       const data = await response.json();
-      setPatientCounts(data); 
+      setPatientCounts(data);
     } catch (error) {
       toast.error('Error fetching patient counts');
     }
   };
 
   useEffect(() => {
-    fetchPatientData(); 
-    fetchPatientCounts(); 
-  }, [location]); 
+    fetchPatientData();
+    fetchServices(); // Fetch services
+    fetchPatientCounts();
+  }, [location]);
 
-  const boxes = [
-    {
-      id: 1,
-      title: 'Today Patients',
-      value: patientCounts.today.toString(),
-      color: ['bg-subMain', 'text-subMain'],
-      icon: BiTime,
-    },
-    {
-      id: 2,
-      title: 'Monthly Patients',
-      value: patientCounts.monthly.toString(),
-      color: ['bg-orange-500', 'text-orange-500'],
-      icon: BsCalendarMonth,
-    },
-    {
-      id: 3,
-      title: 'Yearly Patients',
-      value: patientCounts.yearly.toString(),
-      color: ['bg-green-500', 'text-green-500'],
-      icon: MdFilterList,
-    },
-  ];
+  const filterPatients = () => {
+    let filtered = memberData; // Start with the original data
 
-  // Function to filter patients
-// Function to filter patients
-const filterPatients = () => {
-  let filtered = memberData; // Start with the original data
+    if (serviceFilter) {
+        filtered = filtered.filter(patient => patient.services === serviceFilter);
+    }
 
-  // Filter by gender
-  if (genderFilter === 'Female') {
-    filtered = filtered.filter(patient => patient.gender === 'Female');
-  } else if (genderFilter === 'Male') {
-    filtered = filtered.filter(patient => patient.gender === 'Male');
-  } else if (genderFilter === '') {
-    // If genderFilter is empty, show all patients
-    filtered = memberData;
-  }
+    if (searchQuery) {
+        filtered = filtered.filter(patient =>
+            patient.FullName.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }
 
-  // Filter by search query
-  if (searchQuery) {
-    filtered = filtered.filter(patient =>
-      patient.FullName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-
-  setFilteredData(filtered); // Update filtered data
+    setFilteredData(filtered); // Update filtered data
 };
+
 
   // Handle search query change
   const handleSearch = (query) => {
-    setSearchQuery(query); 
+    setSearchQuery(query);
     filterPatients(); // Call filter function
   };
 
-  // Handle gender filter change
-  const handleGenderChange = (e) => {
-    const selectedGender = e.target.value;
-    setGenderFilter(selectedGender);
-    filterPatients(); // Call filter function
+  // Handle service filter change
+  const handleServiceChange = (e) => {
+    const selectedService = e.target.value;
+    setServiceFilter(selectedService);
+    
+    // Reset filter to all if "All" is selected
+    if (selectedService === "") {
+      setFilteredData(memberData); // Show all patients
+    } else {
+      filterPatients(); // Call filter function
+    }
   };
 
   const handleRefresh = () => {
-    fetchPatientData(); 
+    fetchPatientData();
   };
 
   const previewPayment = (id) => {
@@ -133,16 +101,16 @@ const filterPatients = () => {
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    
+
     doc.text('Patients Report', 20, 10);
 
     doc.autoTable({
-      head: [['ID', 'Name', 'Age', 'Gender', 'Address', 'Phone']],
+      head: [['ID', 'Name', 'Age', 'Service', 'Address', 'Phone']],
       body: filteredData.map(patient => [
         patient.id,
         patient.FullName,
         patient.age,
-        patient.gender,
+        patient.service,
         patient.email,
         patient.phone,
       ]),
@@ -163,28 +131,7 @@ const filterPatients = () => {
       <h1 className="text-2xl font-bold text-gray-800">Patients</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-        {boxes.map((box) => (
-          <div
-            key={box.id}
-            className="bg-white shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out flex items-center gap-4 rounded-lg border border-gray-200 p-6"
-          >
-            <div className="w-3/4">
-              <h2 className="text-sm font-medium text-gray-600">{box.title}</h2>
-              <h2 className="text-2xl my-4 font-semibold text-gray-900">{box.value}</h2>
-              <p className="text-xs text-gray-500">
-                Total Patients <span className={box.color[1]}>{box.value}</span>{' '}
-                {box.title === 'Today Patients'
-                  ? 'today'
-                  : box.title === 'Monthly Patients'
-                  ? 'this month'
-                  : 'this year'}
-              </p>
-            </div>
-            <div className={`w-12 h-12 flex items-center justify-center rounded-lg text-white ${box.color[0]}`}>
-              <box.icon className="text-xl" />
-            </div>
-          </div>
-        ))}
+        {/* Patient counts boxes here */}
       </div>
 
       <div className="bg-white my-8 rounded-xl border-[1px] border-border p-5">
@@ -198,23 +145,25 @@ const filterPatients = () => {
               onChange={(e) => handleSearch(e.target.value)} // Use handleSearch
             />
 
-            {/* Gender Select Box */}
+            {/* Service Select Box */}
             <select
-              value={genderFilter}
-              onChange={handleGenderChange}
+              value={serviceFilter}
+              onChange={handleServiceChange}
               className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
             >
-              {sortsDatas.genderFilter.map((option) => (
-                <option key={option.id} value={option.name === 'Gender...' ? '' : option.name}>
-                  {option.name}
+              <option value="">All</option> {/* "All" option */}
+              {services.map(service => (
+                <option key={service.id} value={service.name}>
+                  {service.name}
                 </option>
               ))}
             </select>
+
           </div>
           <Button
             label="Export PDF"
             Icon={MdOutlineCloudDownload}
-            onClick={exportPDF} 
+            onClick={exportPDF}
             className="h-14"
           />
         </div>
@@ -222,7 +171,7 @@ const filterPatients = () => {
         <div className="mt-8 w-full h-96 overflow-y-auto">
           <PatientTable
             data={filteredData}
-            setData={setFilteredData}  
+            setData={setFilteredData}
             functions={{
               preview: previewPayment,
             }}

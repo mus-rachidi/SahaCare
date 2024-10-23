@@ -10,7 +10,6 @@ import axios from 'axios';
 const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
 const tdclass = 'text-start text-sm py-4 px-2 whitespace-nowrap';
 
-
 export function Transactiontable({ data, action, functions }) {
   const DropDown1 = [
     {
@@ -31,18 +30,17 @@ export function Transactiontable({ data, action, functions }) {
 
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Invalid Date'; // Handle invalid date
+  
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+  
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const formattedTime = `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${ampm}`;
-    return `${formattedDate} - ${formattedTime}`;
+    return new Intl.DateTimeFormat('en-US', options).format(date);
   };
 
-  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap'; // Ensure this is defined
-  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap'; // Ensure this is defined
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
+  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
 
   return (
     <div>
@@ -54,7 +52,7 @@ export function Transactiontable({ data, action, functions }) {
               <th className={thclass}>Patient Name</th>
               <th className={thclass}>Payment Date</th>
               <th className={thclass}>Amount</th>
-              <th className={thclass}>Price</th> {/* New Price Column */}
+              <th className={thclass}>Price</th>
               <th className={thclass}>Status</th>
               {action && <th className={thclass}>Actions</th>}
             </tr>
@@ -78,7 +76,7 @@ export function Transactiontable({ data, action, functions }) {
                     </span>
                   )}
                 </td>
-                <td className={tdclass}> {/* New Price Column Data */}
+                <td className={tdclass}>
                   {Number(patient.price) > 0 ? (
                     <span className="text-green-500">
                       {(Number(patient.price) || 0).toFixed(2)} MAD
@@ -121,7 +119,6 @@ export function Transactiontable({ data, action, functions }) {
     </div>
   );
 }
-
 
 
 
@@ -415,7 +412,6 @@ export function ServiceTable({ data, onEdit, setData }) {
 }
 
 
-// patient table
 export function PatientTable({ data, setData, functions, used }) {
   const DropDown1 = !used
     ? [
@@ -468,6 +464,7 @@ export function PatientTable({ data, setData, functions, used }) {
           <th className={thclasse}>Created At</th>
           <th className={thclasse}>Age</th>
           <th className={thclasse}>Gender</th>
+          <th className={thclasse}>Services</th> {/* New Services Header */}
           <th className={thclasse}>Actions</th>
         </tr>
       </thead>
@@ -477,7 +474,8 @@ export function PatientTable({ data, setData, functions, used }) {
             <td className={tdclasse}>{item.id}</td>
             <td className={tdclasse}>{item.FullName}</td>
             <td className={tdclasse}>{item.phone}</td>
-            <td className={tdclasse}>{moment(item.date).format('MMMM D, YYYY - h:mm A')}</td>
+            {/* Change item.date to item.created_at */}
+            <td className={tdclasse}>{moment(item.created_at).format('MMMM D, YYYY HH:mm')}</td>
             <td className={tdclasse}>{item.age}</td>
             <td className={tdclasse}>
               <span
@@ -486,6 +484,7 @@ export function PatientTable({ data, setData, functions, used }) {
                 {item.gender}
               </span>
             </td>
+            <td className={tdclasse}>{item.services || 'None'}</td> {/* Display Services */}
             <td className={tdclasse}>
               <MenuSelect datas={DropDown1} item={item}>
                 <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
@@ -499,6 +498,7 @@ export function PatientTable({ data, setData, functions, used }) {
     </table>
   );
 }
+
 
 
 export function DoctorsTable({ data, functions, setData }) {

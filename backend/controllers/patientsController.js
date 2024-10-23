@@ -57,6 +57,7 @@ const addPatient = async (req, res) => {
     }
 };
 
+
 // Update a patient by ID
 const updatePatient = async (req, res) => {
     const { id } = req.params;
