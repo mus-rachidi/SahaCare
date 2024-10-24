@@ -33,7 +33,7 @@ def generate_patient_data():
     }
 
 # Loop to generate 100 patients and send a POST request via curl
-for i in range(10):
+for i in range(100):
     patient_data = generate_patient_data()
     
     # Form the curl command
