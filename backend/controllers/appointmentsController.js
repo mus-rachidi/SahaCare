@@ -78,8 +78,34 @@ const deleteAppointment = async (req, res) => {
         res.status(500).json({ error: 'Failed to delete appointment' });
     }
 };
+// Check if the time slot is available
+const checkTimeSlot = async (req, res) => {
+    const { from, to, doctor_id, date } = req.query;
+
+    const query = `
+        SELECT * FROM appointments 
+        WHERE doctor_id = ? AND date = ? AND (
+            (from_time < ? AND to_time > ?) OR
+            (from_time < ? AND to_time > ?)
+        )
+    `;
+
+    try {
+        const [rows] = await promisePool.query(query, [doctor_id, date, to, from, from, to]);
+        if (rows.length > 0) {
+            return res.status(400).json({ error: 'The selected time slot is already reserved.' });
+        }
+        res.status(200).json({ message: 'Time slot is available.' });
+    } catch (err) {
+        console.error("Error checking time slot:", err);
+        res.status(500).send("Error checking time slot");
+    }
+};
+
+// In your routes file, add the new route
 
 module.exports = {
+    checkTimeSlot,
     getAppointments,
     addAppointment,
     updateAppointment,
