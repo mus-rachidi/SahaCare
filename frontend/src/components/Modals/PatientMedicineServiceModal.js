@@ -52,7 +52,7 @@ function PatientMedicineServiceModal({ closeModal, isOpen, patient }) {
                             active && 'text-white'
                           } text-xs group-hover:text-white text-textGray mt-1`}
                         >
-                          {user.email}
+                          {user.FullName}
                         </p>
                       )}
                     </>

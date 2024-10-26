@@ -1,0 +1,11 @@
+.text-3d-logo {
+    text-shadow: 
+      1px 1px 0 rgba(0, 0, 0, 0.1),
+      2px 2px 0 rgba(0, 0, 0, 0.15); /* More subtle shadow for clarity */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+  }
+  
+  .text-3d-logo:hover {
+    transform: scale(1.05); /* Slightly scale on hover */
+  }
+  

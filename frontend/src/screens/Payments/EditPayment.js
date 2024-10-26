@@ -6,19 +6,14 @@ import { IoArrowBackOutline } from 'react-icons/io5';
 import { Button } from '../../components/Form';
 import axios from 'axios';
 import { BsSave } from 'react-icons/bs';
-// Assuming Switchi component is already imported or created
 import { Switchi } from '../../components/Form'; // Removed Input from here
 
 function EditPayment() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [addAmount, setAddAmount] = useState(''); 
+  const [addAmount, setAddAmount] = useState('');
   const [currentAmount, setCurrentAmount] = useState(0);
   const [status, setStatus] = useState(false); // Set as boolean for toggle
-  const [PaymentDate, setPaymentDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
   const [patientName, setPatientName] = useState('');
   const [loading, setLoading] = useState(true);
   const [price, setPrice] = useState(0);
@@ -41,7 +36,6 @@ function EditPayment() {
 
     fetchPaymentData();
   }, [id]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -51,19 +45,19 @@ function EditPayment() {
     const updatedStatus = totalAmount === price ? 'Paid' : status ? 'Cancel' : 'Pending';
 
     try {
-      const updatedAddAmount = !isNaN(parsedAddAmount) && parsedAddAmount >= 0 ? parsedAddAmount : 0;
-      await axios.put(`http://localhost:5000/api/patients/${id}/amount-status`, {
-        amount: totalAmount,
-        status: updatedStatus,
-        PaymentDate,
-      });
-      toast.success('Payment updated successfully!');
-      navigate('/payments');
+        await axios.put(`http://localhost:5000/api/patients/${id}/amount-status`, {
+            amount: totalAmount,
+            status: updatedStatus,
+            PaymentDate: new Date().toISOString(), // Add this line to update PaymentDate
+        });
+        toast.success('Payment updated successfully!');
+        navigate('/payments');
     } catch (error) {
-      console.error('Failed to update payment:', error);
-      toast.error('Payment update failed. Please try again.');
+        console.error('Failed to update payment:', error);
+        toast.error('Payment update failed. Please try again.');
     }
-  };
+};
+
 
   const totalAmount = currentAmount + (parseFloat(addAmount) || 0);
   const autoStatus = totalAmount === price ? 'Paid' : status ? 'Cancel' : 'Pending';
@@ -151,22 +145,9 @@ function EditPayment() {
               checked={status}
               onChange={() => setStatus(!status)}
             />
-            <p className={`text-sm ${status ? 'text-subMain' : 'text-textGray'}`}>
+            <p className={`text-sm ${status ? 'text-red-500' : 'text-textGray'}`}>
               {status ? 'Cancel Enabled' : 'Cancel Disabled'}
             </p>
-          </div>
-
-          {/* Payment Date */}
-          <div>
-            <label htmlFor="PaymentDate" className="block text-sm font-medium text-gray-700">Payment Date</label>
-            <input
-              type="date"
-              id="PaymentDate"
-              value={PaymentDate}
-              onChange={(e) => setPaymentDate(e.target.value)}
-              className="mt-2 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              required
-            />
           </div>
 
           {/* Submit Button */}

@@ -31,7 +31,8 @@ const addPatient = async (req, res) => {
     try {
         const adminValue = admin === 'True' || admin === true ? 1 : 0;
         const currentDate = moment();
-        const formattedDate = currentDate.format("YYYY-MM-DD");
+        const formattedDate = currentDate.format("YYYY-MM-DD - HH:mm"); // Format includes hours and minutes
+        
 
         // Fetch current patient IDs
         const [patients] = await promisePool.query("SELECT id FROM Patients");
@@ -57,29 +58,32 @@ const addPatient = async (req, res) => {
     }
 };
 
-
 // Update a patient by ID
 const updatePatient = async (req, res) => {
+    const { amount, status, PaymentDate } = req.body;
     const { id } = req.params;
-    const { FullName, age, gender, phone, email, totalAppointments, services, PaymentDate, price } = req.body;
 
     const sqlUpdate = `
         UPDATE Patients
-        SET FullName = ?, age = ?, gender = ?, phone = ?, email = ?, totalAppointments = ?, PaymentDate = ?, services = ?, price = ?
+        SET amount = ?, 
+            status = ?, 
+            PaymentDate = ?
         WHERE id = ?
     `;
 
     try {
-        const [result] = await promisePool.query(sqlUpdate, [FullName, age, gender, phone, email, totalAppointments, PaymentDate, services, price, id]);
+        const [result] = await promisePool.query(sqlUpdate, [amount, status, PaymentDate, id]);
         if (result.affectedRows === 0) {
             return res.status(404).send("Patient not found");
         }
-        res.send("Patient updated successfully");
+        res.send("Payment updated successfully");
     } catch (err) {
-        console.error("Error updating patient:", err);
-        res.status(500).send("Error updating patient");
+        console.error("Error updating payment:", err);
+        res.status(500).send("Error updating payment");
     }
 };
+
+
 
 // Delete a patient by ID
 const deletePatient = async (req, res) => {
@@ -156,15 +160,36 @@ const getPatientCounts = async (req, res) => {
     }
 };
 
+const getPaymentSummary = async (req, res) => {
+    console.log("GET /api/payment-summary endpoint hit"); // Log when endpoint is called
+
+    try {
+        const sql = `
+            SELECT
+                SUM(CASE WHEN DATE(PaymentDate) = CURDATE() THEN amount ELSE 0 END) AS dailyTotal,
+                SUM(CASE WHEN MONTH(PaymentDate) = MONTH(CURDATE()) AND YEAR(PaymentDate) = YEAR(CURDATE()) THEN amount ELSE 0 END) AS monthlyTotal,
+                SUM(CASE WHEN YEAR(PaymentDate) = YEAR(CURDATE()) THEN amount ELSE 0 END) AS yearlyTotal
+            FROM Patients
+            WHERE status = 'Paid'
+        `;
+
+        const [rows] = await promisePool.query(sql);
+        res.json(rows[0]); 
+    } catch (err) {
+        console.error("Error fetching payment summary:", err);
+        res.status(500).json({ error: "Error fetching payment summary" });
+    }
+};
+
 // Update only the amount and status for a patient by ID
 const updatePatientAmountAndStatus = async (req, res) => {
     const { id } = req.params;
-    const { amount, status, PaymentDate } = req.body;
+    const { amount, status } = req.body; // Removed PaymentDate as it's handled in the backend
 
     const maxStatusLength = 20; // Set according to your database definition
 
     console.log(`Received request to update patient with ID: ${id}`);
-    console.log(`Amount: ${amount}, Status: ${status}, Payment Date: ${PaymentDate}`);
+    console.log(`Amount: ${amount}, Status: ${status}`);
 
     // Validate status length
     if (status.length > maxStatusLength) {
@@ -174,15 +199,15 @@ const updatePatientAmountAndStatus = async (req, res) => {
     // SQL query to update amount, status, and PaymentDate fields
     const sqlUpdate = `
         UPDATE Patients
-        SET amount = ?, status = ?, PaymentDate = ?
+        SET amount = ?, status = ?, PaymentDate = CURRENT_TIMESTAMP
         WHERE id = ?
     `;
 
     try {
         // Log the SQL query
-        console.log(`Executing SQL: ${sqlUpdate} with values: [${amount}, ${status}, ${PaymentDate}, ${id}]`);
+        console.log(`Executing SQL: ${sqlUpdate} with values: [${amount}, ${status}, ${id}]`);
 
-        const [result] = await promisePool.query(sqlUpdate, [amount, status, PaymentDate, id]);
+        const [result] = await promisePool.query(sqlUpdate, [amount, status, id]);
 
         // Log the result of the query
         console.log(`Query result:`, result);
@@ -208,5 +233,6 @@ module.exports = {
     addPatient,
     updatePatient,
     deletePatient,
-    getPatientById 
+    getPatientById,
+    getPaymentSummary
 };

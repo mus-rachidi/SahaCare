@@ -88,7 +88,7 @@ function Services() {
       )}
       <button
         onClick={() => setIsOpen(true)}
-        className="w-16 h-16 border border-border z-50 bg-subMain text-white rounded-full flex items-center justify-center fixed bottom-8 right-12 hover:shadow-lg transition"
+        className="w-16 animate-bounce h-16 border border-border z-50 bg-subMain text-white rounded-full flex-colo fixed bottom-8 right-12 button-fb"
       >
         <BiPlus className="text-2xl" />
       </button>

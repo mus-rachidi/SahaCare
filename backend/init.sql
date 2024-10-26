@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS Patients (
     totalAppointments INT,
     amount DECIMAL(10, 2) DEFAULT 0,
     status ENUM('Paid', 'Pending', 'Cancel') DEFAULT 'Pending',
-    PaymentDate DATE,
+    PaymentDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     services VARCHAR(255),
     price DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -78,3 +78,17 @@ CREATE TABLE IF NOT EXISTS Invoices (
     FOREIGN KEY (doctor_id) REFERENCES doctors(id)
 );
 
+
+CREATE TABLE IF NOT EXISTS appointments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    time VARCHAR(50),
+    from_time TIME,
+    to_time TIME,
+    hours INT,
+    status ENUM('Pending', 'Approved', 'Cancel'),
+    date DATE,
+    patient_id INT,            
+    doctor_id INT,
+    FOREIGN KEY (patient_id) REFERENCES Patients(id), 
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id)  
+);

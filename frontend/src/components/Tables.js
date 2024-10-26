@@ -10,37 +10,25 @@ import axios from 'axios';
 const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
 const tdclass = 'text-start text-sm py-4 px-2 whitespace-nowrap';
 
-export function Transactiontable({ data, action, functions }) {
-  const DropDown1 = [
-    {
-      title: 'Edit',
-      icon: FiEdit,
-      onClick: (data) => {
-        functions.edit(data.id);
-      },
-    },
-    {
-      title: 'View',
-      icon: FiEye,
-      onClick: (data) => {
-        functions.preview(data.id);
-      },
-    },
-  ];
-
+export function Transactiontable({ data, functions }) {
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
-  
+
     if (isNaN(date.getTime())) {
       return 'Invalid Date';
     }
-  
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Intl.DateTimeFormat('en-US', options).format(date);
+
+    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(date);
+
+    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+    const formattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(date);
+
+    return `${formattedDate} - ${formattedTime}`;
   };
 
-  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
-  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; 
+  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700';
 
   return (
     <div>
@@ -48,13 +36,13 @@ export function Transactiontable({ data, action, functions }) {
         <table className="table-auto w-full mt-4">
           <thead className="bg-dry rounded-md overflow-hidden">
             <tr>
-              <th className={thclass}>#</th>
-              <th className={thclass}>Patient Name</th>
-              <th className={thclass}>Payment Date</th>
-              <th className={thclass}>Amount</th>
-              <th className={thclass}>Price</th>
-              <th className={thclass}>Status</th>
-              {action && <th className={thclass}>Actions</th>}
+              <th className={`${thclass} sticky top-0`}>#</th>
+              <th className={`${thclass} sticky top-0`}>Patient Name</th>
+              <th className={`${thclass} sticky top-0`}>Last Update</th>
+              <th className={`${thclass} sticky top-0`}>Amount</th>
+              <th className={`${thclass} sticky top-0`}>Price</th>
+              <th className={`${thclass} sticky top-0`}>Status</th>
+              <th className={`${thclass} sticky top-0`}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -77,16 +65,11 @@ export function Transactiontable({ data, action, functions }) {
                   )}
                 </td>
                 <td className={tdclass}>
-                  {Number(patient.price) > 0 ? (
-                    <span className="text-green-500">
-                      {(Number(patient.price) || 0).toFixed(2)} MAD
-                    </span>
-                  ) : (
-                    <span className="text-red-500">
-                      {(Number(patient.price) || 0).toFixed(2)} MAD
-                    </span>
-                  )}
+                  <span className="text-black">
+                    {(Number(patient.price) || 0).toFixed(2)} MAD
+                  </span>
                 </td>
+
                 <td className={tdclass}>
                   <span
                     className={`
@@ -102,15 +85,15 @@ export function Transactiontable({ data, action, functions }) {
                     {patient.status}
                   </span>
                 </td>
-                {action && (
-                  <td className={tdclass}>
-                    <MenuSelect datas={DropDown1} item={{ id: patient.id }}>
-                      <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
-                        <BiDotsHorizontalRounded />
-                      </div>
-                    </MenuSelect>
-                  </td>
-                )}
+                <td className={tdclass}>
+                  <button
+                    onClick={() => functions.edit(patient.id)}
+                    className="flex items-center bg-dry border text-blue-500 text-sm py-1 px-2 rounded-lg hover:bg-blue-100 transition-colors duration-300"
+                  >
+                    <FiEdit className="mr-1" />
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -119,7 +102,6 @@ export function Transactiontable({ data, action, functions }) {
     </div>
   );
 }
-
 
 
 export function InvoiceTable() {
@@ -252,29 +234,36 @@ export function InvoiceTable() {
   );
 }
 
-
 export function MedicineTable({ data, onEdit, onDelete }) {
-  const DropDown1 = [
+  const deleteMedicine = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/medicines/${id}`);
+      toast.success('Medicine deleted successfully');
+      onDelete(id); // Call the onDelete function passed as a prop
+    } catch (error) {
+      toast.error('Error deleting medicine');
+    }
+  };
+
+  const getDropdownActions = (item) => [
     {
       title: 'Edit',
       icon: FiEdit,
-      onClick: (item) => {
-        onEdit(item); // Call the onEdit function passed as a prop
-      },
+      onClick: () => onEdit(item), // Call the onEdit function passed as a prop
     },
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
-      onClick: (item) => {
+      onClick: () => {
         if (window.confirm(`Are you sure you want to delete ${item.name}?`)) {
-          onDelete(item.id); // Call the onDelete function passed as a prop
+          deleteMedicine(item.id); // Trigger medicine deletion
         }
       },
     },
   ];
 
-  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
-  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; // Header styles
+  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Body styles
 
   return (
     <div style={{
@@ -299,25 +288,21 @@ export function MedicineTable({ data, onEdit, onDelete }) {
         </thead>
         <tbody>
           {data.map((item) => (
-            <tr key={item.id} className="border-b border-border hover:bg-greyed transition">
+            <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
               <td className={tdclass}>
                 <h4 className="text-sm font-medium">{item.name}</h4>
               </td>
               <td className={`${tdclass} font-semibold`}>{item.price}</td>
               <td className={tdclass}>
-                <td className={tdclass}>
-                  <span className={`text-xs font-medium ${item.status === 'out of stock' ? 'text-red-600' : 'text-green-600'}`}>
-                    {item.status}
-                  </span>
-                </td>
-
-
+                <span className={`text-xs font-medium ${item.status === 'out of stock' ? 'text-red-600' : 'text-green-600'}`}>
+                  {item.status}
+                </span>
               </td>
               <td className={tdclass}>{item.inStock}</td>
               <td className={tdclass}>{item.measure}</td>
               <td className={tdclass}>
-                <MenuSelect datas={DropDown1} item={item}>
-                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                <MenuSelect datas={getDropdownActions(item)} item={item}>
+                  <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
                     <BiDotsHorizontalRounded />
                   </div>
                 </MenuSelect>
@@ -329,7 +314,6 @@ export function MedicineTable({ data, onEdit, onDelete }) {
     </div>
   );
 }
-
 
 export function ServiceTable({ data, onEdit, setData }) {
   const deleteService = async (id) => {
@@ -362,6 +346,9 @@ export function ServiceTable({ data, onEdit, setData }) {
       },
     },
   ];
+
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; // Header styles
+  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Body styles
 
   return (
     <div style={{
@@ -398,7 +385,7 @@ export function ServiceTable({ data, onEdit, setData }) {
               </td>
               <td className={tdclass}>
                 <MenuSelect datas={DropDown1(item)} item={item}>
-                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                  <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
                     <BiDotsHorizontalRounded />
                   </div>
                 </MenuSelect>
@@ -411,83 +398,81 @@ export function ServiceTable({ data, onEdit, setData }) {
   );
 }
 
-
 export function PatientTable({ data, setData, functions, used }) {
   const DropDown1 = !used
     ? [
-        {
-          title: 'View',
-          icon: FiEye,
-          onClick: (data) => {
-            functions.preview(data.id);
-          },
+      {
+        title: 'View',
+        icon: FiEye,
+        onClick: (data) => {
+          functions.preview(data.id);
         },
-        {
-          title: 'Delete',
-          icon: RiDeleteBin6Line,
-          onClick: async (item) => {
-            if (window.confirm('Are you sure you want to delete this patient?')) {
-              try {
-                const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
-                alert(response.data.message); // Show success message
+      },
+      {
+        title: 'Delete',
+        icon: RiDeleteBin6Line,
+        onClick: async (item) => {
+          if (window.confirm('Are you sure you want to delete this patient?')) {
+            try {
+              const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
+              alert(response.data.message); // Show success message
 
-                // Remove the deleted item from the data state
-                setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
-              } catch (error) {
-                console.error('Error deleting patient:', error);
-                alert('Error deleting patient'); // Show error message
-              }
+              // Remove the deleted item from the data state
+              setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
+            } catch (error) {
+              console.error('Error deleting patient:', error);
+              alert('Error deleting patient'); // Show error message
             }
-          },
+          }
         },
-      ]
+      },
+    ]
     : [
-        {
-          title: 'View',
-          icon: FiEye,
-          onClick: (data) => {
-            functions.preview(data.id);
-          },
+      {
+        title: 'View',
+        icon: FiEye,
+        onClick: (data) => {
+          functions.preview(data.id);
         },
-      ];
+      },
+    ];
 
-  const thclasse = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
-  const tdclasse = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; // Header clarity
+  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Increased text size for clarity
 
   return (
     <table className="table-auto w-full">
       <thead className="bg-dry rounded-md overflow-hidden">
         <tr>
-          <th className={thclasse}>ID</th>
-          <th className={thclasse}>Full Name</th>
-          <th className={thclasse}>Phone</th>
-          <th className={thclasse}>Created At</th>
-          <th className={thclasse}>Age</th>
-          <th className={thclasse}>Gender</th>
-          <th className={thclasse}>Services</th> {/* New Services Header */}
-          <th className={thclasse}>Actions</th>
+          <th className={thclass}>#</th>
+          <th className={thclass}>Full Name</th>
+          <th className={thclass}>Phone</th>
+          <th className={thclass}>Created At</th>
+          <th className={thclass}>Age</th>
+          <th className={thclass}>Gender</th>
+          <th className={thclass}>Services</th>
+          <th className={thclass}>Actions</th>
         </tr>
       </thead>
       <tbody>
         {data.map((item) => (
           <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
-            <td className={tdclasse}>{item.id}</td>
-            <td className={tdclasse}>{item.FullName}</td>
-            <td className={tdclasse}>{item.phone}</td>
-            {/* Change item.date to item.created_at */}
-            <td className={tdclasse}>{moment(item.created_at).format('MMMM D, YYYY HH:mm')}</td>
-            <td className={tdclasse}>{item.age}</td>
-            <td className={tdclasse}>
+            <td className={tdclass}>{item.id}</td>
+            <td className={tdclass}>{item.FullName}</td>
+            <td className={tdclass}>{item.phone}</td>
+            <td className={tdclass}>{moment(item.created_at).format('MMMM D, YYYY - HH:mm')}</td>
+            <td className={tdclass}>{item.age}</td>
+            <td className={tdclass}>
               <span
                 className={`py-1 px-4 ${item.gender === 'Male' ? 'bg-subMain text-subMain' : 'bg-orange-500 text-orange-500'} bg-opacity-10 text-xs rounded-xl`}
               >
                 {item.gender}
               </span>
             </td>
-            <td className={tdclasse}>{item.services || 'None'}</td> {/* Display Services */}
-            <td className={tdclasse}>
+            <td className={tdclass}>{item.services || 'None'}</td>
+            <td className={tdclass}>
               <MenuSelect datas={DropDown1} item={item}>
-                <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
                   <BiDotsHorizontalRounded />
                 </div>
               </MenuSelect>
@@ -499,44 +484,40 @@ export function PatientTable({ data, setData, functions, used }) {
   );
 }
 
-
-
-export function DoctorsTable({ data, functions, setData }) {
+export function DoctorsTable({ data, onEdit, setData }) {
   const deleteDoctor = async (id) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this doctor?');
-    if (confirmDelete) {
-      try {
-        const response = await axios.delete(`http://localhost:5000/api/doctors/${id}`);
-        alert(response.data.message); // Show success message
+    try {
+      await axios.delete(`http://localhost:5000/api/doctors/${id}`);
+      toast.success('Doctor deleted successfully');
 
-        // Update the state to remove the deleted doctor
-        setData((prevData) => prevData.filter((doctor) => doctor.id !== id));
-      } catch (err) {
-        console.error('Error deleting doctor:', err);
-        alert('Error deleting doctor'); // Show error message
-      }
+      // Update the state by filtering out the deleted doctor
+      setData((prevData) => prevData.filter(doctor => doctor.id !== id));
+    } catch (error) {
+      toast.error('Error deleting doctor');
     }
   };
 
-  const DropDown1 = [
+  const DropDown1 = (doctor) => [
     {
-      title: 'View',
-      icon: FiEye,
-      onClick: (data) => {
-        functions.preview(data.id);
+      title: 'Edit',
+      icon: FiEdit,
+      onClick: () => {
+        onEdit(doctor);
       },
     },
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
-      onClick: (doctor) => {
-        deleteDoctor(doctor.id);
+      onClick: () => {
+        if (window.confirm('Are you sure you want to delete this doctor?')) {
+          deleteDoctor(doctor.id);
+        }
       },
     },
   ];
 
-  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
-  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; // Header styles
+  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Body styles
 
   return (
     <div style={{
@@ -549,7 +530,6 @@ export function DoctorsTable({ data, functions, setData }) {
       <table className="table-auto w-full">
         <thead className="bg-dry rounded-md overflow-hidden">
           <tr>
-            <th className={thclass}>ID</th>
             <th className={thclass}>Full Name</th>
             <th className={thclass}>Phone</th>
             <th className={thclass}>Created At</th>
@@ -561,15 +541,16 @@ export function DoctorsTable({ data, functions, setData }) {
         <tbody>
           {data.map((doctor) => (
             <tr key={doctor.id} className="border-b border-border hover:bg-greyed transitions">
-              <td className={tdclass}>{doctor.id}</td>
-              <td className={tdclass}>{doctor.fullName}</td>
-              <td className={tdclass}>{doctor.phone}</td>
-              <td className={tdclass}>{new Date(doctor.created_at).toLocaleDateString()}</td>
-              <td className={tdclass}>{doctor.title}</td>
-              <td className={tdclass}>{doctor.email}</td>
               <td className={tdclass}>
-                <MenuSelect datas={DropDown1} item={doctor}>
-                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                <h4 className="text-sm font-medium">{doctor?.fullName}</h4>
+              </td>
+              <td className={tdclass}>{doctor?.phone}</td>
+              <td className={tdclass}>{new Date(doctor?.created_at).toLocaleDateString()}</td>
+              <td className={tdclass}>{doctor?.title}</td>
+              <td className={tdclass}>{doctor?.email}</td>
+              <td className={tdclass}>
+                <MenuSelect datas={DropDown1(doctor)} item={doctor}>
+                  <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
                     <BiDotsHorizontalRounded />
                   </div>
                 </MenuSelect>
@@ -582,50 +563,49 @@ export function DoctorsTable({ data, functions, setData }) {
   );
 }
 
-
-export function ReceptionsTable({ receptions, functions }) {
+export function ReceptionsTable({ receptions, onEdit, setData }) {
   // Function to delete a reception
   const deleteReception = async (id) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this reception?');
-    if (confirmDelete) {
-      try {
-        const response = await axios.delete(`http://localhost:5000/api/receptions/${id}`);
-        alert(response.data.message); // Show success message
-        // Here you might need to inform the parent component to refresh the list or handle it accordingly
-      } catch (err) {
-        console.error('Error deleting reception:', err);
-        alert('Error deleting reception'); // Show error message
-      }
+    try {
+      await axios.delete(`http://localhost:5000/api/receptions/${id}`);
+      toast.success('Reception deleted successfully');
+
+      // Update the state by filtering out the deleted reception
+      setData((prevData) => prevData.filter(reception => reception.id !== id));
+    } catch (err) {
+      toast.error('Error deleting reception');
     }
   };
 
-  const DropDown1 = [
+  const DropDown1 = (reception) => [
     {
       title: 'View',
       icon: FiEye,
-      onClick: (data) => {
-        functions.preview(data.id);
+      onClick: () => {
+        onEdit(reception); // You can adapt this for viewing functionality
       },
     },
     {
       title: 'Delete',
       icon: RiDeleteBin6Line,
-      onClick: (reception) => {
-        deleteReception(reception.id);
+      onClick: () => {
+        if (window.confirm('Are you sure you want to delete this reception?')) {
+          deleteReception(reception.id);
+        }
       },
     },
   ];
 
-  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap';
-  const tdclass = 'text-start text-xs py-4 px-2 whitespace-nowrap';
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; // Header styles
+  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Body styles
 
   return (
     <div style={{
       overflowY: 'auto',
-      maxHeight: '400px',  // Adjust this height based on your design needs
-      border: '1px solid #e2e8f0', // Example border style
-      borderRadius: '0.375rem', // For rounded corners
-      padding: '1rem', // Padding around the table
+      maxHeight: '400px',
+      border: '1px solid #e2e8f0',
+      borderRadius: '0.375rem',
+      padding: '1rem',
     }}>
       <table className="table-auto w-full">
         <thead className="bg-dry rounded-md overflow-hidden">
@@ -649,8 +629,8 @@ export function ReceptionsTable({ receptions, functions }) {
               <td className={tdclass}>{reception.title}</td>
               <td className={tdclass}>{reception.email}</td>
               <td className={tdclass}>
-                <MenuSelect datas={DropDown1} item={reception}>
-                  <div className="bg-dry border text-main text-xl py-2 px-4 rounded-lg">
+                <MenuSelect datas={DropDown1(reception)} item={reception}>
+                  <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
                     <BiDotsHorizontalRounded />
                   </div>
                 </MenuSelect>
@@ -662,6 +642,7 @@ export function ReceptionsTable({ receptions, functions }) {
     </div>
   );
 }
+
 
 // appointment table
 export function AppointmentTable({ data, functions, doctor }) {

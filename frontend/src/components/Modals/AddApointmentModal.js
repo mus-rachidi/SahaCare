@@ -10,26 +10,20 @@ import {
   TimePickerComp,
 } from '../Form';
 import { BiChevronDown, BiPlus } from 'react-icons/bi';
-import { memberData, servicesData, sortsDatas } from '../Datas';
+import { sortsDatas } from '../Datas';
 import { HiOutlineCheckCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import PatientMedicineServiceModal from './PatientMedicineServiceModal';
 
-// edit member data
-const doctorsData = memberData.map((item) => {
-  return {
-    id: item.id,
-    name: item.title,
-  };
-});
-
 function AddAppointmentModal({ closeModal, isOpen, datas }) {
-  const [services, setServices] = useState(servicesData[0]);
+  const [services, setServices] = useState(null);
+  const [servicesData, setServicesData] = useState([]);
   const [startDate, setStartDate] = useState(new Date());
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
   const [status, setStatus] = useState(sortsDatas.status[0]);
-  const [doctors, setDoctors] = useState(doctorsData[0]);
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [shares, setShares] = useState({
     email: false,
     sms: false,
@@ -37,12 +31,45 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
   });
   const [open, setOpen] = useState(false);
 
-  // on change share
-  const onChangeShare = (e) => {
-    setShares({ ...shares, [e.target.name]: e.target.checked });
-  };
+  // Fetch servicesData from the API
+  useEffect(() => {
+    const fetchServicesData = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/services');
+        if (!response.ok) throw new Error('Failed to fetch services');
+        const data = await response.json();
+        setServicesData(data);
+        setServices(data[0]); // Set the initial selected service if needed
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        toast.error('Failed to load services');
+      }
+    };
+    fetchServicesData();
+  }, []);
 
-  // set data
+  // Fetch doctors data from the API
+  useEffect(() => {
+    const fetchDoctorsData = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/doctors');
+        if (!response.ok) throw new Error('Failed to fetch doctors');
+        const data = await response.json();
+        const formattedDoctors = data.map((doctor) => ({
+          id: doctor.id,
+          name: `${doctor.title} ${doctor.fullName}`,
+        }));
+        setDoctors(formattedDoctors);
+        setSelectedDoctor(formattedDoctors[0]); // Set the initial selected doctor if needed
+      } catch (error) {
+        console.error('Error fetching doctors:', error);
+        toast.error('Failed to load doctors');
+      }
+    };
+    fetchDoctorsData();
+  }, []);
+
+  // Set data for edit mode
   useEffect(() => {
     if (datas?.title) {
       setServices(datas?.service);
@@ -51,6 +78,44 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       setShares(datas?.shareData);
     }
   }, [datas]);
+
+  // onChange share
+  const onChangeShare = (e) => {
+    setShares({ ...shares, [e.target.name]: e.target.checked });
+  };
+
+  // Handle form submission
+ // Handle form submission
+const handleSave = async () => {
+  const appointmentData = {
+    time: startTime.toLocaleTimeString('en-US', { hour12: false }), // Format as HH:MM:SS
+    from: startTime.toLocaleTimeString('en-US', { hour12: false }),
+    to: endTime.toLocaleTimeString('en-US', { hour12: false }),
+    hours: (endTime - startTime) / (1000 * 60 * 60), // Duration in hours
+    status: status.name,
+    date: startDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+    patient_id: datas?.patientId || 5, // Use an actual patient ID if available
+    doctor_id: selectedDoctor.id,
+  };
+
+  try {
+    const response = await fetch('http://localhost:5000/api/appointments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(appointmentData),
+    });
+
+    if (!response.ok) throw new Error('Failed to save appointment');
+    toast.success('Appointment saved successfully');
+    closeModal();
+  } catch (error) {
+    console.error('Error saving appointment:', error);
+    toast.error('Failed to save appointment');
+  }
+};
+
 
   return (
     <Modal
@@ -96,11 +161,10 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
               datas={servicesData}
             >
               <div className="w-full flex-btn text-textGray text-sm p-4 border border-border font-light rounded-lg focus:border focus:border-subMain">
-                {services.name} <BiChevronDown className="text-xl" />
+                {services?.name} <BiChevronDown className="text-xl" />
               </div>
             </Select>
           </div>
-          {/* date */}
           <DatePickerComp
             label="Date of visit"
             startDate={startDate}
@@ -121,17 +185,16 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           />
         </div>
 
-        {/* status && doctor */}
         <div className="grid sm:grid-cols-2 gap-4 w-full">
           <div className="flex w-full flex-col gap-3">
             <p className="text-black text-sm">Doctor</p>
             <Select
-              selectedPerson={doctors}
-              setSelectedPerson={setDoctors}
-              datas={doctorsData}
+              selectedPerson={selectedDoctor}
+              setSelectedPerson={setSelectedDoctor}
+              datas={doctors}
             >
               <div className="w-full flex-btn text-textGray text-sm p-4 border border-border font-light rounded-lg focus:border focus:border-subMain">
-                {doctors.name} <BiChevronDown className="text-xl" />
+                {selectedDoctor?.name} <BiChevronDown className="text-xl" />
               </div>
             </Select>
           </div>
@@ -149,7 +212,6 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           </div>
         </div>
 
-        {/* des */}
         <Textarea
           label="Description"
           placeholder={
@@ -161,7 +223,6 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           rows={5}
         />
 
-        {/* share */}
         <div className="flex-col flex gap-8 w-full">
           <p className="text-black text-sm">Share with patient via</p>
           <div className="flex flex-wrap sm:flex-nowrap gap-4">
@@ -185,7 +246,6 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
             />
           </div>
         </div>
-        {/* buttones */}
         <div className="grid sm:grid-cols-2 gap-4 w-full">
           <button
             onClick={closeModal}
@@ -195,10 +255,8 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           </button>
           <Button
             label="Save"
-            Icon={HiOutlineCheckCircle}
-            onClick={() => {
-              toast.error('This feature is not available yet');
-            }}
+            icon={<HiOutlineCheckCircle />}
+            onClick={handleSave}
           />
         </div>
       </div>

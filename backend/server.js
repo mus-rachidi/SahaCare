@@ -6,7 +6,7 @@ const receptionsRoutes = require("./routes/receptions");
 const serviceRoutes = require('./routes/services');
 const medicinesRoutes = require("./routes/medicines");
 const invoiceRoutes = require("./routes/invoices");
-const paymentRoutes = require('./routes/payments');  // <-- Add this line
+const appointmentsRouter = require("./routes/appointments");
 
 const app = express();
 app.use(cors());
@@ -18,7 +18,7 @@ app.use("/api", doctorsRoutes);
 app.use('/api', receptionsRoutes);
 app.use('/api', medicinesRoutes);
 app.use('/api', invoiceRoutes);
-app.use('/api', paymentRoutes);  // <-- Add this line
+app.use('/api', appointmentsRouter);
 
 const PORT = process.env.API_PORT || 5000;
 app.listen(PORT, () => {

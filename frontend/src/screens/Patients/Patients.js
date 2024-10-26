@@ -175,7 +175,7 @@ function Patients() {
           <div className="md:col-span-5 grid lg:grid-cols-4 xs:grid-cols-2 items-center gap-2">
             <input
               type="text"
-              placeholder='Search "Search"'
+              placeholder='Search'
               className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
@@ -185,7 +185,7 @@ function Patients() {
               value={serviceFilter}
               onChange={handleServiceChange}
               className="h-14 w-full text-sm text-main rounded-md bg-dry border border-border px-4 focus:outline-none focus:ring focus:ring-subMain"
-            >
+              >
               <option value="">All</option>
               {services.map(service => (
                 <option key={service.id} value={service.name}>
