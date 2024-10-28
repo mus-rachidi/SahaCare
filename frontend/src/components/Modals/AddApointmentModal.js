@@ -90,15 +90,13 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
     }
   };
 
-
-
   const handleSave = async () => {
     const timeDifference = (endTime - startTime) / (1000 * 60);
     if (timeDifference < 30) {
       toast.error('The appointment duration must be at least 30 minutes.');
       return;
     }
-
+  
     if (!selectedPatient) {
       toast.error('Please select a patient');
       return;
@@ -107,37 +105,35 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       toast.error('Please select a doctor');
       return;
     }
-
-    const timeSlotCheckData = {
-      from: startTime.toLocaleTimeString('en-US', { hour12: false }),
-      to: endTime.toLocaleTimeString('en-US', { hour12: false }),
-      // doctor_id: selectedDoctor.id,
-      date: startDate.toISOString().split('T')[0]
-    };
-
+  
+    // Create a date string for the appointment
+    const appointmentDate = startDate.toISOString().split('T')[0];
+  
     try {
-      const timeSlotResponse = await fetch(`http://localhost:5000/api/appointments/check?doctor_id=${timeSlotCheckData.doctor_id}&date=${timeSlotCheckData.date}&from=${timeSlotCheckData.from}&to=${timeSlotCheckData.to}`);
-      if (!timeSlotResponse.ok) {
-        const { error } = await timeSlotResponse.json();
-        toast.error(error || 'Failed to check time slot availability');
+      // Check if the time slot is available
+      const timeCheckResponse = await fetch(`http://localhost:5000/api/appointments/check?from=${startTime.toLocaleTimeString('en-US', { hour12: false })}&to=${endTime.toLocaleTimeString('en-US', { hour12: false })}&doctor_id=${selectedDoctor.id}&date=${appointmentDate}`);
+      
+      if (!timeCheckResponse.ok) {
+        const errorData = await timeCheckResponse.json();
+        toast.error(errorData.error);
         return;
       }
-
+  
       const appointmentData = {
         time: startTime.toLocaleTimeString('en-US', { hour12: false }),
         from: startTime.toLocaleTimeString('en-US', { hour12: false }),
         to: endTime.toLocaleTimeString('en-US', { hour12: false }),
         hours: (endTime - startTime) / (1000 * 60 * 60),
-        date: startDate.toISOString().split('T')[0],
+        date: appointmentDate,
         patient_id: selectedPatient.id,
         doctor_id: selectedDoctor.id,
       };
-
+  
       let response;
       let responseData;
-
+  
       if (datas?.id) {
-        console.log("put")
+        console.log("put");
         response = await fetch(`http://localhost:5000/api/appointments/${datas.id}`, {
           method: 'PUT',
           headers: {
@@ -145,7 +141,7 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           },
           body: JSON.stringify(appointmentData),
         });
-
+  
         if (!response.ok) throw new Error('Failed to update appointment');
         responseData = await response.json();
         toast.success('Appointment updated successfully');
@@ -157,19 +153,20 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           },
           body: JSON.stringify(appointmentData),
         });
-
+  
         if (!response.ok) throw new Error('Failed to save appointment');
         responseData = await response.json();
         toast.success(responseData.message || 'Appointment saved successfully');
       }
-
-
+  
       closeModal();
     } catch (error) {
       console.error('Error saving appointment:', error);
       toast.error('Failed to save appointment');
     }
   };
+  
+  
 
   return (
     <Modal

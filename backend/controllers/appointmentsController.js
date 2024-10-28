@@ -86,12 +86,13 @@ const checkTimeSlot = async (req, res) => {
         SELECT * FROM appointments 
         WHERE doctor_id = ? AND date = ? AND (
             (from_time < ? AND to_time > ?) OR
-            (from_time < ? AND to_time > ?)
+            (from_time < ? AND to_time > ?) OR
+            (from_time >= ? AND to_time <= ?)
         )
     `;
 
     try {
-        const [rows] = await promisePool.query(query, [doctor_id, date, to, from, from, to]);
+        const [rows] = await promisePool.query(query, [doctor_id, date, to, from, from, to, from, to]);
         if (rows.length > 0) {
             return res.status(400).json({ error: 'The selected time slot is already reserved.' });
         }
