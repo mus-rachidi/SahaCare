@@ -8,7 +8,6 @@ const getAppointments = async (req, res) => {
         let sql = "SELECT * FROM appointments";
         let params = [];
 
-        // If there's a search term, adjust the SQL query
         if (search) {
             sql += " WHERE patient_id LIKE ? OR doctor_id LIKE ?";
             params.push(`%${search}%`, `%${search}%`);
@@ -24,7 +23,7 @@ const getAppointments = async (req, res) => {
 
 // Add a new appointment
 const addAppointment = async (req, res) => {
-    const { time, from, to, hours, status, date, patient_id, doctor_id } = req.body;  // Correctly reference patient_id here
+    const { time, from, to, hours, status, date, patient_id, doctor_id } = req.body; 
     const query = `
         INSERT INTO appointments (time, from_time, to_time, hours, status, date, patient_id, doctor_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -43,15 +42,16 @@ const addAppointment = async (req, res) => {
 // Update an appointment
 const updateAppointment = async (req, res) => {
     const { id } = req.params;
-    const { time, from, to, hours, status, date, patientId, doctorId } = req.body;
+    const { time, from, to, hours, status, date } = req.body; // Removed patientId and doctorId
+
     const query = `
         UPDATE appointments 
-        SET time = ?, from_time = ?, to_time = ?, hours = ?, status = ?, date = ?, patient_id = ?, doctor_id = ?
+        SET time = ?, from_time = ?, to_time = ?, hours = ?, status = ?, date = ?
         WHERE id = ?
     `;
 
     try {
-        const [result] = await promisePool.query(query, [time, from, to, hours, status, date, patientId, doctorId, id]);
+        const [result] = await promisePool.query(query, [time, from, to, hours, status, date, id]); // Updated parameter array
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Appointment not found' });
         }
@@ -102,7 +102,6 @@ const checkTimeSlot = async (req, res) => {
     }
 };
 
-// In your routes file, add the new route
 
 module.exports = {
     checkTimeSlot,

@@ -2,15 +2,11 @@ import React, { useEffect, useState } from 'react';
 import Modal from './Modal';
 import {
   Button,
-  Checkbox,
   DatePickerComp,
-  Input,
   Select,
-  Textarea,
   TimePickerComp,
 } from '../Form';
-import { BiChevronDown, BiPlus } from 'react-icons/bi';
-import { sortsDatas } from '../Datas';
+import { BiChevronDown } from 'react-icons/bi';
 import { HiOutlineCheckCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 
@@ -22,14 +18,8 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
   const [patients, setPatients] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [shares, setShares] = useState({
-    email: false,
-    sms: false,
-    whatsapp: false,
-  });
-  const [open, setOpen] = useState(false);
 
-  // Fetch doctors data from the API
+
   useEffect(() => {
     const fetchDoctorsData = async () => {
       try {
@@ -41,7 +31,6 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           name: `${doctor.title} ${doctor.fullName}`,
         }));
         setDoctors(formattedDoctors);
-        setSelectedDoctor(formattedDoctors[0]);
       } catch (error) {
         console.error('Error fetching doctors:', error);
         toast.error('Failed to load doctors');
@@ -50,7 +39,6 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
     fetchDoctorsData();
   }, []);
 
-  // Fetch patients data from the API
   useEffect(() => {
     const fetchPatientsData = async () => {
       try {
@@ -70,64 +58,118 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
     fetchPatientsData();
   }, []);
 
-  const onChangeShare = (e) => {
-    setShares({ ...shares, [e.target.name]: e.target.checked });
+
+  useEffect(() => {
+    if (datas && datas.id && patients.length > 0 && doctors.length > 0) {
+      setStartDate(new Date(datas.start));
+      setStartTime(new Date(datas.start));
+      setEndTime(new Date(datas.end));
+      
+      const patientToSelect = patients.find(patient => patient.id === datas.patient_id);
+      setSelectedPatient(patientToSelect); 
+      const doctorToSelect = doctors.find(doctor => doctor.id === datas.doctor_id);
+      setSelectedDoctor(doctorToSelect);
+    }
+  }, [datas, patients, doctors]); 
+
+  const handleDelete = async () => {
+    if (!datas?.id) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/appointments/${datas.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete appointment');
+      
+      toast.success('Appointment deleted successfully');
+      closeModal();
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      toast.error('Failed to delete appointment');
+    }
   };
+
+
+
   const handleSave = async () => {
-    const timeDifference = (endTime - startTime) / (1000 * 60); // in minutes
+    const timeDifference = (endTime - startTime) / (1000 * 60);
     if (timeDifference < 30) {
-        toast.error('The appointment duration must be at least 30 minutes.');
-        return;
-    }
-    if (!selectedPatient) {
-        toast.error('Please select a patient');
-        return;
-    }
-    if (!selectedDoctor) {
-        toast.error('Please select a doctor');
-        return;
+      toast.error('The appointment duration must be at least 30 minutes.');
+      return;
     }
 
-    const appointmentData = {
+    if (!selectedPatient) {
+      toast.error('Please select a patient');
+      return;
+    }
+    if (!selectedDoctor) {
+      toast.error('Please select a doctor');
+      return;
+    }
+
+    const timeSlotCheckData = {
+      from: startTime.toLocaleTimeString('en-US', { hour12: false }),
+      to: endTime.toLocaleTimeString('en-US', { hour12: false }),
+      // doctor_id: selectedDoctor.id,
+      date: startDate.toISOString().split('T')[0]
+    };
+
+    try {
+      const timeSlotResponse = await fetch(`http://localhost:5000/api/appointments/check?doctor_id=${timeSlotCheckData.doctor_id}&date=${timeSlotCheckData.date}&from=${timeSlotCheckData.from}&to=${timeSlotCheckData.to}`);
+      if (!timeSlotResponse.ok) {
+        const { error } = await timeSlotResponse.json();
+        toast.error(error || 'Failed to check time slot availability');
+        return;
+      }
+
+      const appointmentData = {
         time: startTime.toLocaleTimeString('en-US', { hour12: false }),
         from: startTime.toLocaleTimeString('en-US', { hour12: false }),
         to: endTime.toLocaleTimeString('en-US', { hour12: false }),
         hours: (endTime - startTime) / (1000 * 60 * 60),
-        status: "Pending",
         date: startDate.toISOString().split('T')[0],
         patient_id: selectedPatient.id,
         doctor_id: selectedDoctor.id,
-    };
+      };
 
-    // Check if the time slot is available
-    try {
-        const checkResponse = await fetch(`http://localhost:5000/api/appointments/check?from=${appointmentData.from}&to=${appointmentData.to}&doctor_id=${appointmentData.doctor_id}&date=${appointmentData.date}`);
-        
-        if (!checkResponse.ok) {
-            const checkErrorData = await checkResponse.json();
-            toast.error(checkErrorData.error); // Show the specific error message
-            return; // Exit if the time is not available
-        }
+      let response;
+      let responseData;
 
-        // If the time slot is available, save the appointment
-        const response = await fetch('http://localhost:5000/api/appointments', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(appointmentData),
+      if (datas?.id) {
+        console.log("put")
+        response = await fetch(`http://localhost:5000/api/appointments/${datas.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(appointmentData),
+        });
+
+        if (!response.ok) throw new Error('Failed to update appointment');
+        responseData = await response.json();
+        toast.success('Appointment updated successfully');
+      } else {
+        response = await fetch('http://localhost:5000/api/appointments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(appointmentData),
         });
 
         if (!response.ok) throw new Error('Failed to save appointment');
-        const responseData = await response.json();
+        responseData = await response.json();
         toast.success(responseData.message || 'Appointment saved successfully');
-        closeModal();
-    } catch (error) {
-        console.error('Error saving appointment:', error);
-        toast.error('Failed to save appointment');
-    }
-};
+      }
 
+
+      closeModal();
+    } catch (error) {
+      console.error('Error saving appointment:', error);
+      toast.error('Failed to save appointment');
+    }
+  };
 
   return (
     <Modal
@@ -194,10 +236,10 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
 
         <div className="grid sm:grid-cols-2 gap-4 w-full">
           <button
-            onClick={closeModal}
+            onClick={datas?.id ? handleDelete : closeModal}
             className="bg-red-600 bg-opacity-5 text-red-600 text-sm p-4 rounded-lg font-light"
           >
-            {datas?.title ? 'Discard' : 'Cancel'}
+            {datas?.id ? 'Discard' : 'Cancel'}
           </button>
           <Button
             label="Save"

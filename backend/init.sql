@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS Patients (
     totalAppointments INT,
     amount DECIMAL(10, 2) DEFAULT 0,
     status ENUM('Paid', 'Pending', 'Cancel') DEFAULT 'Pending',
-    PaymentDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    PaymentDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     services VARCHAR(255),
     price DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

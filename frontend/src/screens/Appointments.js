@@ -8,7 +8,7 @@ import { HiOutlineCalendarDays } from 'react-icons/hi2';
 import AddAppointmentModal from '../components/Modals/AddApointmentModal';
 
 const CustomToolbar = (toolbar) => {
-  const goToBack = () => {
+  const goToBack = () => {  
     toolbar.date.setMonth(toolbar.date.getMonth() - 1);
     toolbar.onNavigate('prev');
   };
@@ -82,51 +82,52 @@ function Appointments() {
   const localizer = momentLocalizer(moment);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({});
-  const [services, setServices] = useState([]);
   const [events, setEvents] = useState([]);
 
-  // Fetch services and appointments from the backend
-// Fetch services, appointments, and patients from the backend
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const servicesResponse = await fetch('http://localhost:5000/api/services');
-      const servicesData = await servicesResponse.json();
-      setServices(servicesData);
-
-      const eventsResponse = await fetch('http://localhost:5000/api/appointments');
-      const eventsData = await eventsResponse.json();
-
-      // Fetch patients' data
-      const patientsResponse = await fetch('http://localhost:5000/api/patients');
-      const patientsData = await patientsResponse.json();
-      const patientsMap = Object.fromEntries(patientsData.map(patient => [patient.id, patient.FullName]));
-
-      // Map events to the required format with date and time
-      const mappedEvents = eventsData.map(event => {
-        // Parse date and time to create valid Date objects for start and end
-        const eventDate = moment(event.date).format('YYYY-MM-DD'); // Extract date part
-        const startTime = event.from_time ? `${eventDate}T${event.from_time}` : `${eventDate}T00:00:00`;
-        const endTime = event.to_time ? `${eventDate}T${event.to_time}` : `${eventDate}T00:00:00`;
-
-        return {
-          id: event.id,
-          title: patientsMap[event.patient_id] || 'Unknown Patient', // Use patient's full name
-          start: new Date(startTime),
-          end: new Date(endTime),
-          color: '#66B5A3', // Optional: Set a color for the event
-        };
-      });
-
-      setEvents(mappedEvents);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  fetchData();
-}, []);
-
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch appointments
+        const eventsResponse = await fetch('http://localhost:5000/api/appointments');
+        const eventsData = await eventsResponse.json();
+  
+        // Fetch patients
+        const patientsResponse = await fetch('http://localhost:5000/api/patients');
+        const patientsData = await patientsResponse.json();
+        const patientsMap = Object.fromEntries(patientsData.map(patient => [patient.id, patient.FullName]));
+  
+        // Fetch doctors
+        const doctorsResponse = await fetch('http://localhost:5000/api/doctors');
+        const doctorsData = await doctorsResponse.json();
+        const doctorsMap = Object.fromEntries(doctorsData.map(doctor => [doctor.id, doctor.fullName]));
+  
+        // Map events
+        const mappedEvents = eventsData.map(event => {
+          const eventDate = moment(event.date).format('YYYY-MM-DD');
+          const startTime = event.from_time ? `${eventDate}T${event.from_time}` : `${eventDate}T00:00:00`;
+          const endTime = event.to_time ? `${eventDate}T${event.to_time}` : `${eventDate}T00:00:00`;
+  
+          return {
+            id: event.id,
+            // Include both patient and doctor names in the title
+            title: `${patientsMap[event.patient_id] || 'Unknown Patient'} with Dr. ${doctorsMap[event.doctor_id] || 'Unknown Doctor'}`,
+            start: new Date(startTime),
+            end: new Date(endTime),
+            color: '#66B5A3',
+            patient_id: event.patient_id,
+            doctor_id: event.doctor_id,
+          };
+        });
+  
+        setEvents(mappedEvents);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+  
+    fetchData();
+  }, [events]);
+  
 
   
 
@@ -139,6 +140,7 @@ useEffect(() => {
     setData(event);
     setOpen(!open);
   };
+
 
   return (
     <Layout>
