@@ -1,8 +1,58 @@
 import { Listbox, Menu, Switch } from '@headlessui/react';
-import React from 'react';
 import { BiLoaderCircle } from 'react-icons/bi';
 import DatePicker from 'react-datepicker';
 import { FaCheck } from 'react-icons/fa';
+import React, { useState } from 'react';
+// In ../Form/Search.js
+
+export function Search({ label, datas, selectedPerson, setSelectedPerson }) {
+  const [query, setQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false); // State to control dropdown visibility
+
+  const filteredData = datas.filter(person =>
+    person.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const handleSelect = (person) => {
+    setSelectedPerson(person);
+    setQuery(person.name); // Set the input value to the selected person's name
+    setShowDropdown(false); // Hide the dropdown after selection
+  };
+
+  return (
+    <div className="text-sm w-full relative">
+      <label className="block text-black text-sm">{label}</label>
+      <input
+        type="text"
+        placeholder="Search..."
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setShowDropdown(e.target.value !== ''); // Show dropdown if there's input
+        }}
+        className="w-full mt-3 p-4 border border-border rounded-lg focus:border focus:border-subMain"
+      />
+      {showDropdown && filteredData.length > 0 && (
+        <ul className="absolute z-10 w-full bg-white border border-border rounded-md mt-1 max-h-60 overflow-auto">
+          {filteredData.map((person) => (
+            <li
+              key={person.id}
+              onClick={() => handleSelect(person)}
+              className="cursor-pointer hover:bg-subMain hover:text-white p-2"
+            >
+              {person.name}
+            </li>
+          ))}
+        </ul>
+      )}
+      {showDropdown && filteredData.length === 0 && (
+        <div className="absolute z-10 w-full bg-white border border-border rounded-md mt-1 p-2 text-gray-500">
+          No results found.
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Input({ label, name, type, color, placeholder, register }) {
   return (

@@ -103,7 +103,6 @@ const checkTimeSlot = async (req, res) => {
     }
 };
 
-
 module.exports = {
     checkTimeSlot,
     getAppointments,

@@ -3,12 +3,10 @@ import Modal from './Modal';
 import {
   Button,
   DatePickerComp,
-  Select,
   TimePickerComp,
 } from '../Form';
-import { BiChevronDown } from 'react-icons/bi';
-import { HiOutlineCheckCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
+import { HiOutlineCheckCircle } from 'react-icons/hi';
 
 function AddAppointmentModal({ closeModal, isOpen, datas }) {
   const [startDate, setStartDate] = useState(new Date());
@@ -18,7 +16,10 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
   const [patients, setPatients] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
-
+  const [searchTermPatient, setSearchTermPatient] = useState('');
+  const [searchTermDoctor, setSearchTermDoctor] = useState('');
+  const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+  const [showDoctorDropdown, setShowDoctorDropdown] = useState(false);
 
   useEffect(() => {
     const fetchDoctorsData = async () => {
@@ -58,19 +59,18 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
     fetchPatientsData();
   }, []);
 
-
   useEffect(() => {
     if (datas && datas.id && patients.length > 0 && doctors.length > 0) {
       setStartDate(new Date(datas.start));
       setStartTime(new Date(datas.start));
       setEndTime(new Date(datas.end));
-      
+
       const patientToSelect = patients.find(patient => patient.id === datas.patient_id);
-      setSelectedPatient(patientToSelect); 
+      setSelectedPatient(patientToSelect);
       const doctorToSelect = doctors.find(doctor => doctor.id === datas.doctor_id);
       setSelectedDoctor(doctorToSelect);
     }
-  }, [datas, patients, doctors]); 
+  }, [datas, patients, doctors]);
 
   const handleDelete = async () => {
     if (!datas?.id) return;
@@ -79,9 +79,9 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       const response = await fetch(`http://localhost:5000/api/appointments/${datas.id}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) throw new Error('Failed to delete appointment');
-      
+
       toast.success('Appointment deleted successfully');
       closeModal();
     } catch (error) {
@@ -89,11 +89,24 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       toast.error('Failed to delete appointment');
     }
   };
-
   const handleSave = async () => {
-    const timeDifference = (endTime - startTime) / (1000 * 60);
-    if (timeDifference < 30) {
-      toast.error('The appointment duration must be at least 30 minutes.');
+    const now = new Date();
+    const selectedStartTime = new Date(startDate);
+    selectedStartTime.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+  
+    // Check if the selected start time is before the current date and time
+    if (selectedStartTime < now) {
+      toast.error('Appointment time must be later than the current date and time.');
+      return;
+    }
+  
+    const selectedEndTime = new Date(selectedStartTime); // Create a new date object for end time
+    selectedEndTime.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0); // Set end time based on selected start time
+  
+    // Calculate the time difference in minutes
+    const timeDifference = (selectedEndTime - selectedStartTime) / (1000 * 60);
+    if (timeDifference <= 15) { // Ensure the difference is more than 15 minutes
+      toast.error('The appointment duration must be more than 15 minutes.');
       return;
     }
   
@@ -106,13 +119,12 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       return;
     }
   
-    // Create a date string for the appointment
-    const appointmentDate = startDate.toISOString().split('T')[0];
+    const appointmentDate = selectedStartTime.toISOString().split('T')[0];
   
     try {
-      // Check if the time slot is available
-      const timeCheckResponse = await fetch(`http://localhost:5000/api/appointments/check?from=${startTime.toLocaleTimeString('en-US', { hour12: false })}&to=${endTime.toLocaleTimeString('en-US', { hour12: false })}&doctor_id=${selectedDoctor.id}&date=${appointmentDate}`);
-      
+      // Check if the time slot is already reserved
+      const timeCheckResponse = await fetch(`http://localhost:5000/api/appointments/check?from=${selectedStartTime.toLocaleTimeString('en-US', { hour12: false })}&to=${selectedEndTime.toLocaleTimeString('en-US', { hour12: false })}&doctor_id=${selectedDoctor.id}&date=${appointmentDate}`);
+  
       if (!timeCheckResponse.ok) {
         const errorData = await timeCheckResponse.json();
         toast.error(errorData.error);
@@ -120,10 +132,10 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       }
   
       const appointmentData = {
-        time: startTime.toLocaleTimeString('en-US', { hour12: false }),
-        from: startTime.toLocaleTimeString('en-US', { hour12: false }),
-        to: endTime.toLocaleTimeString('en-US', { hour12: false }),
-        hours: (endTime - startTime) / (1000 * 60 * 60),
+        time: selectedStartTime.toLocaleTimeString('en-US', { hour12: false }),
+        from: selectedStartTime.toLocaleTimeString('en-US', { hour12: false }),
+        to: selectedEndTime.toLocaleTimeString('en-US', { hour12: false }),
+        hours: (selectedEndTime - selectedStartTime) / (1000 * 60 * 60),
         date: appointmentDate,
         patient_id: selectedPatient.id,
         doctor_id: selectedDoctor.id,
@@ -133,7 +145,6 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       let responseData;
   
       if (datas?.id) {
-        console.log("put");
         response = await fetch(`http://localhost:5000/api/appointments/${datas.id}`, {
           method: 'PUT',
           headers: {
@@ -166,7 +177,14 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
     }
   };
   
-  
+
+  const filteredPatients = patients.filter(patient =>
+    patient.name.toLowerCase().includes(searchTermPatient.toLowerCase())
+  );
+
+  const filteredDoctors = doctors.filter(doctor =>
+    doctor.name.toLowerCase().includes(searchTermDoctor.toLowerCase())
+  );
 
   return (
     <Modal
@@ -181,15 +199,39 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
             <label className="block text-sm font-medium text-gray-700">
               Patient Name <span className="text-red-600">*</span>
             </label>
-            <Select
-              selectedPerson={selectedPatient}
-              setSelectedPerson={setSelectedPatient}
-              datas={patients}
-            >
-              <div className={`w-full flex-btn text-textGray text-sm p-4 border font-light rounded-lg ${!selectedPatient ? 'border-red-600' : 'border-border'} focus:border focus:border-subMain`}>
-                {selectedPatient?.name || 'Select Patient'} <BiChevronDown className="text-xl" />
+            {datas?.id ? (
+              <p className="border rounded p-2">{selectedPatient?.name || 'No patient selected'}</p>
+            ) : (
+              <input
+                type="text"
+                value={searchTermPatient}
+                onChange={(e) => {
+                  setSearchTermPatient(e.target.value);
+                  setShowPatientDropdown(e.target.value !== ''); // Show dropdown when typing
+                }}
+                placeholder="Search for a patient..."
+                className="w-full border rounded p-2"
+                onFocus={() => setShowPatientDropdown(true)} // Show dropdown on focus
+                onBlur={() => setTimeout(() => setShowPatientDropdown(false), 200)} // Hide dropdown after a short delay
+              />
+            )}
+            {showPatientDropdown && !datas?.id && (
+              <div className="max-h-48 overflow-y-auto border border-gray-300 rounded mt-1">
+                {filteredPatients.map(patient => (
+                  <div
+                    key={patient.id}
+                    className={`p-2 cursor-pointer hover:bg-gray-200 ${selectedPatient?.id === patient.id ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      setSelectedPatient(patient);
+                      setSearchTermPatient(patient.name); // Set the selected patient's name
+                      setShowPatientDropdown(false); // Hide dropdown after selection
+                    }}
+                  >
+                    {patient.name}
+                  </div>
+                ))}
               </div>
-            </Select>
+            )}
           </div>
         </div>
 
@@ -214,20 +256,44 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
           />
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 w-full">
-          <div className="flex w-full flex-col gap-3">
-            <p className="text-black text-sm">
-              Doctor <span className="text-red-600">*</span>
-            </p>
-            <Select
-              selectedPerson={selectedDoctor}
-              setSelectedPerson={setSelectedDoctor}
-              datas={doctors}
-            >
-              <div className={`w-full flex-btn text-textGray text-sm p-4 border font-light rounded-lg ${!selectedDoctor ? 'border-red-600' : 'border-border'} focus:border focus:border-subMain`}>
-                {selectedDoctor?.name || 'Select Doctor'} <BiChevronDown className="text-xl" />
+        <div className="grid sm:grid-cols-12 gap-4 w-full items-center">
+          <div className="sm:col-span-10">
+            <label className="block text-sm font-medium text-gray-700">
+              Doctor Name <span className="text-red-600">*</span>
+            </label>
+            {datas?.id ? (
+              <p className="border rounded p-2">{selectedDoctor?.name || 'No doctor selected'}</p>
+            ) : (
+              <input
+                type="text"
+                value={searchTermDoctor}
+                onChange={(e) => {
+                  setSearchTermDoctor(e.target.value);
+                  setShowDoctorDropdown(e.target.value !== ''); // Show dropdown when typing
+                }}
+                placeholder="Search for a doctor..."
+                className="w-full border rounded p-2"
+                onFocus={() => setShowDoctorDropdown(true)} // Show dropdown on focus
+                onBlur={() => setTimeout(() => setShowDoctorDropdown(false), 200)} // Hide dropdown after a short delay
+              />
+            )}
+            {showDoctorDropdown && !datas?.id && (
+              <div className="max-h-48 overflow-y-auto border border-gray-300 rounded mt-1">
+                {filteredDoctors.map(doctor => (
+                  <div
+                    key={doctor.id}
+                    className={`p-2 cursor-pointer hover:bg-gray-200 ${selectedDoctor?.id === doctor.id ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      setSelectedDoctor(doctor);
+                      setSearchTermDoctor(doctor.name); // Set the selected doctor's name
+                      setShowDoctorDropdown(false); // Hide dropdown after selection
+                    }}
+                  >
+                    {doctor.name}
+                  </div>
+                ))}
               </div>
-            </Select>
+            )}
           </div>
         </div>
 
