@@ -959,33 +959,33 @@ export const patientTab = [
     title: 'Appointments',
     icon: BiCalendar,
   },
+  // {
+  //   id: 3,
+  //   title: 'Invoices',
+  //   icon: RiFileList3Line,
+  // },
+  // {
+  //   id: 4,
+  //   title: 'Payments',
+  //   icon: RiMoneyDollarCircleLine,
+  // },
   {
     id: 3,
-    title: 'Invoices',
-    icon: RiFileList3Line,
-  },
-  {
-    id: 4,
-    title: 'Payments',
-    icon: RiMoneyDollarCircleLine,
-  },
-  {
-    id: 5,
     title: 'Images',
     icon: RiImageLine,
   },
+  // {
+  //   id: 4,
+  //   title: 'Dental Chart',
+  //   icon: RiStethoscopeLine,
+  // },
   {
-    id: 6,
-    title: 'Dental Chart',
-    icon: RiStethoscopeLine,
-  },
-  {
-    id: 7,
+    id: 4,
     title: 'Patient Information',
     icon: RiUserLine,
   },
   {
-    id: 8,
+    id: 5,
     title: 'Health Information',
     icon: RiHeartLine,
   },

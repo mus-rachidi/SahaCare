@@ -2,36 +2,70 @@ import { useState, useEffect } from 'react';
 import AddAppointmentModal from '../Modals/AddApointmentModal';
 import { AppointmentTable } from '../Tables';
 
-function AppointmentsUsed({ doctor }) {
+function AppointmentsUsed({ doctor, patientId }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({});
-  const [appointmentsData, setAppointmentsData] = useState([]); // State for fetched data
+  const [appointmentsData, setAppointmentsData] = useState([]);
+  const [patientNames, setPatientNames] = useState({});
+  const [doctorNames, setDoctorNames] = useState({});
 
   // Fetch appointments data from API
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/appointments'); // Adjust API endpoint as needed
+        const response = await fetch(`http://localhost:5000/api/appointments?patientId=${patientId}`);
         const appointments = await response.json();
         setAppointmentsData(appointments);
-        console.log("Fetched Appointments Data:", appointments); // Print data to console
       } catch (error) {
         console.error('Error fetching appointments:', error);
       }
     };
 
-    fetchAppointments();
-  }, []);
+    if (patientId) {
+      fetchAppointments();
+    }
+  }, [patientId]);
 
-  // onClick event handler
+  // Fetch patient and doctor names based on their IDs
+  useEffect(() => {
+    const fetchNames = async () => {
+      const patientPromises = appointmentsData.map(async (item) => {
+        if (item.patient_id) {
+          const response = await fetch(`http://localhost:5000/api/patients/${item.patient_id}`);
+          const patientData = await response.json();
+          return { id: item.patient_id, FullName: patientData.FullName };
+        }
+        return null;
+      });
+
+      const doctorPromises = appointmentsData.map(async (item) => {
+        if (item.doctor_id) {
+          const response = await fetch(`http://localhost:5000/api/doctors/${item.doctor_id}`);
+          const doctorData = await response.json();
+          return { id: item.doctor_id, fullName: doctorData.fullName };
+        }
+        return null;
+      });
+
+      const patients = await Promise.all(patientPromises);
+      const doctors = await Promise.all(doctorPromises);
+
+      setPatientNames(Object.fromEntries(patients.filter(Boolean).map(p => [p.id, p.FullName])));
+      setDoctorNames(Object.fromEntries(doctors.filter(Boolean).map(d => [d.id, d.fullName])));
+    };
+
+    if (appointmentsData.length > 0) {
+      fetchNames();
+    }
+  }, [appointmentsData]);
+
   const handleEventClick = (event) => {
     setData(event);
-    setOpen(!open);
+    setOpen(true);
   };
 
-  // handle modal close
   const handleClose = () => {
-    setOpen(!open);
+    setOpen(false);
     setData({});
   };
 
@@ -48,7 +82,8 @@ function AppointmentsUsed({ doctor }) {
       <div className="w-full overflow-x-scroll">
         <AppointmentTable
           data={appointmentsData}
-          doctor={doctor}
+          patientNames={patientNames} // Pass patient names here
+          doctorNames={doctorNames}   // Pass doctor names here
           functions={{
             preview: handleEventClick,
           }}

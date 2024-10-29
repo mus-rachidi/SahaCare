@@ -26,25 +26,26 @@ function Payments() {
     {
       id: 1,
       title: 'Today Payments',
-      value: todayPayments.toLocaleString(),
+      value: (todayPayments ?? 0).toLocaleString(),
       color: ['bg-subMain', 'text-subMain'],
       icon: BiTime,
     },
     {
       id: 2,
       title: 'Monthly Payments',
-      value: monthlyPayments.toLocaleString(),
+      value: (monthlyPayments ?? 0).toLocaleString(),
       color: ['bg-orange-500', 'text-orange-500'],
       icon: BsCalendarMonth,
     },
     {
       id: 3,
       title: 'Yearly Payments',
-      value: yearlyPayments.toLocaleString(),
+      value: (yearlyPayments ?? 0).toLocaleString(),
       color: ['bg-green-500', 'text-green-500'],
       icon: MdOutlineCalendarMonth,
     },
   ];
+  
 
   const editPayment = (id) => {
     navigate(`/payments/edit/${id}`);

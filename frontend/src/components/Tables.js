@@ -643,18 +643,19 @@ export function ReceptionsTable({ receptions, onEdit, setData }) {
   );
 }
 
+export function AppointmentTable({ data, patientNames, doctorNames, functions }) {
+  const thclass = "p-2 text-left"; // Define your thclass
+  const tdclass = "p-2"; // Define your tdclass
 
-// appointment table
-export function AppointmentTable({ data, functions, doctor }) {
   return (
     <table className="table-auto w-full">
       <thead className="bg-dry rounded-md overflow-hidden">
         <tr>
           <th className={thclass}>Date</th>
-          <th className={thclass}>{doctor ? 'Patient' : 'Doctor'}</th>
-          <th className={thclass}>Status</th>
           <th className={thclass}>Time</th>
-          <th className={thclass}>Action</th>
+          <th className={thclass}>Hours</th>
+          <th className={thclass}>Patient Full Name</th>
+          <th className={thclass}>Doctor Full Name</th>
         </tr>
       </thead>
       <tbody>
@@ -664,39 +665,26 @@ export function AppointmentTable({ data, functions, doctor }) {
             className="border-b border-border hover:bg-greyed transitions"
           >
             <td className={tdclass}>
-              <p className="text-xs">{item.date}</p>
-            </td>
-            <td className={tdclass}>
-              <h4 className="text-xs font-medium">
-                {doctor ? item.user.title : item.doctor.title}
-              </h4>
-              <p className="text-xs mt-1 text-textGray">
-                {doctor ? item.user.phone : item.doctor.phone}
+              <p className="text-xs">
+                {new Date(item.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </p>
             </td>
             <td className={tdclass}>
-              <span
-                className={`py-1  px-4 ${item.status === 'Approved'
-                  ? 'bg-subMain text-subMain'
-                  : item.status === 'Pending'
-                    ? 'bg-orange-500 text-orange-500'
-                    : item.status === 'Cancel' && 'bg-red-600 text-red-600'
-                  } bg-opacity-10 text-xs rounded-xl`}
-              >
-                {item.status}
-              </span>
-            </td>
-            <td className={tdclass}>
-              <p className="text-xs">{`${item.from} - ${item.to}`}</p>
-            </td>
+            <p className="text-xs">{`${item.from_time.slice(0, 5)} - ${item.to_time.slice(0, 5)}`}</p>
+          </td>
 
             <td className={tdclass}>
-              <button
-                onClick={() => functions.preview(item)}
-                className="text-sm flex-colo bg-white text-subMain border rounded-md w-10 h-10"
-              >
-                <FiEye />
-              </button>
+              <p className="text-xs">{item.hours}</p>
+            </td>
+            <td className={tdclass}>
+              <p className="text-xs">{patientNames[item.patient_id] || 'Loading...'}</p>
+            </td>
+            <td className={tdclass}>
+              <p className="text-xs">{doctorNames[item.doctor_id] || 'Loading...'}</p>
             </td>
           </tr>
         ))}
@@ -704,6 +692,8 @@ export function AppointmentTable({ data, functions, doctor }) {
     </table>
   );
 }
+
+
 
 // payment table
 export function PaymentTable({ data, functions, doctor }) {

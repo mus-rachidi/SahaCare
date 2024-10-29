@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Layout from '../../Layout';
 import { patientTab } from '../../components/Datas';
-import { Link } from 'react-router-dom';
 import { IoArrowBackOutline } from 'react-icons/io5';
 import MedicalRecord from './MedicalRecord';
 import AppointmentsUsed from '../../components/UsedComp/AppointmentsUsed';
@@ -11,32 +11,55 @@ import PersonalInfo from '../../components/UsedComp/PersonalInfo';
 import PatientImages from './PatientImages';
 import HealthInfomation from './HealthInfomation';
 import DentalChart from './DentalChart';
+import { toast } from 'react-hot-toast';
 
 function PatientProfile() {
-  const [activeTab, setActiveTab] = React.useState(1);
+  const { id } = useParams(); // Get patient ID from URL
+  const [activeTab, setActiveTab] = useState(1);
+  const [patientData, setPatientData] = useState(null); // State to hold patient data
+
+  // Function to fetch patient data by ID
+  const fetchPatientData = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/patients/${id}`);
+      if (!response.ok) throw new Error('Error fetching patient data');
+      const data = await response.json();
+      setPatientData(data);
+    } catch (error) {
+      toast.error('Error fetching patient data');
+    }
+  };
+
+  useEffect(() => {
+    fetchPatientData();
+  }, [id]);
 
   const tabPanel = () => {
     switch (activeTab) {
       case 1:
-        return <MedicalRecord />;
+        return <MedicalRecord data={patientData} />;
       case 2:
-        return <AppointmentsUsed doctor={false} />;
+        return <AppointmentsUsed doctor={false} patientId={id} />;
+      // case 3:
+      //   return <InvoiceUsed patientId={id} />;
+      // case 4:
+      //   return <PaymentsUsed doctor={false} patientId={id} />;
       case 3:
-        return <InvoiceUsed />;
+        return <PatientImages patientId={id} />;
+      // case 6:
+      //   return <DentalChart patientId={id} />;
       case 4:
-        return <PaymentsUsed doctor={false} />;
+        return <PersonalInfo titles={false} data={patientData} />;
       case 5:
-        return <PatientImages />;
-      case 6:
-        return <DentalChart />;
-      case 7:
-        return <PersonalInfo titles={false} />;
-      case 8:
-        return <HealthInfomation />;
+        return <HealthInfomation data={patientData} />;
       default:
         return;
     }
   };
+
+  if (!patientData) {
+    return <div>Loading...</div>; // Optionally show a loading state
+  }
 
   return (
     <Layout>
@@ -47,9 +70,9 @@ function PatientProfile() {
         >
           <IoArrowBackOutline />
         </Link>
-        <h1 className="text-xl font-semibold">Amani Mmassy</h1>
+        <h1 className="text-xl font-semibold">{patientData.FullName}</h1>
       </div>
-      <div className=" grid grid-cols-12 gap-6 my-8 items-start">
+      <div className="grid grid-cols-12 gap-6 my-8 items-start">
         <div
           data-aos="fade-right"
           data-aos-duration="1000"
@@ -57,15 +80,11 @@ function PatientProfile() {
           data-aos-offset="200"
           className="col-span-12 flex-colo gap-6 lg:col-span-4 bg-white rounded-xl border-[1px] border-border p-6 lg:sticky top-28"
         >
-          <img
-            src="/images/user7.png"
-            alt="setting"
-            className="w-40 h-40 rounded-full object-cover border border-dashed border-subMain"
-          />
+        
           <div className="gap-2 flex-colo">
-            <h2 className="text-sm font-semibold">Amani Mmassy</h2>
-            <p className="text-xs text-textGray">amanimmassy@gmail.com</p>
-            <p className="text-xs">+254 712 345 678</p>
+            <h2 className="text-sm font-semibold">{patientData.FullName}</h2>
+            <p className="text-xs text-textGray">{patientData.email}</p>
+            <p className="text-xs">{patientData.phone}</p>
           </div>
           {/* tabs */}
           <div className="flex-colo gap-3 px-2 xl:px-12 w-full">
