@@ -1,14 +1,15 @@
-const { promisePool } = require('../config/db'); // Adjust the path as necessary
+const { promisePool } = require('../config/db'); 
 
-// Get all appointments
 const getAppointments = async (req, res) => {
-    const { search } = req.query;
-
+    const { patientId, search } = req.query; 
     try {
         let sql = "SELECT * FROM appointments";
         let params = [];
 
-        if (search) {
+        if (patientId) {
+            sql += " WHERE patient_id = ?";
+            params.push(patientId);
+        } else if (search) {
             sql += " WHERE patient_id LIKE ? OR doctor_id LIKE ?";
             params.push(`%${search}%`, `%${search}%`);
         }
@@ -20,6 +21,7 @@ const getAppointments = async (req, res) => {
         res.status(500).send("Error fetching appointments");
     }
 };
+
 
 // Add a new appointment
 const addAppointment = async (req, res) => {

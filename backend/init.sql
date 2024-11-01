@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS Patients (
     admin BOOLEAN,
     email VARCHAR(100),
     phone VARCHAR(15),
-    age INT,
+    age INT CHECK (age >= 0),
     gender VARCHAR(10),
     totalAppointments INT,
     amount DECIMAL(10, 2) DEFAULT 0,
@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS Patients (
     PaymentDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     services VARCHAR(255),
     price DECIMAL(10, 2) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    doctor_id BIGINT UNSIGNED,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL
 );
 
 
@@ -50,8 +52,6 @@ CREATE TABLE IF NOT EXISTS Receptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     image VARCHAR(255)
 );
-
-
 
 DROP TABLE IF EXISTS Medicines;
 
@@ -88,7 +88,37 @@ CREATE TABLE IF NOT EXISTS appointments (
     status ENUM('Pending', 'Approved', 'Cancel'),
     date DATE,
     patient_id INT,            
-    doctor_id INT,
+    doctor_id BIGINT UNSIGNED,
     FOREIGN KEY (patient_id) REFERENCES Patients(id), 
     FOREIGN KEY (doctor_id) REFERENCES doctors(id)  
+);
+
+
+CREATE TABLE IF NOT EXISTS doctors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fullName VARCHAR(100) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(15) NOT NULL,
+    password VARCHAR(255) NOT NULL, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    image VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS medical_records (
+    record_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,   
+    doctor_id BIGINT UNSIGNED, 
+    record_date DATE NOT NULL,
+    diagnosis TEXT,
+    treatment TEXT,
+    medicine VARCHAR(100),         
+    dosage VARCHAR(50),             
+    quantity INT,                  
+    instruction ENUM('Before meal', 'After meal') NOT NULL,
+    complaints TEXT,          
+    vital_signs VARCHAR(255),
+    attachment VARCHAR(255), 
+    FOREIGN KEY (patient_id) REFERENCES Patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL
 );

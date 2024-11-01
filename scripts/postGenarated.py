@@ -30,7 +30,7 @@ def generate_patient_data():
 for i in range(100):
     patient_data = generate_patient_data()
     
-    # Form the curl command
+    # Form the curl command and ensure the JSON is correctly formatted without trailing commas
     curl_command = f"""
     curl -X POST http://localhost:5000/api/patients \
     -H "Content-Type: application/json" \
@@ -41,7 +41,7 @@ for i in range(100):
         "age": {patient_data['age']},
         "gender": "{patient_data['gender']}",
         "amount": {patient_data['amount']},
-        "price": {patient_data['price']},
+        "price": {patient_data['price']}
     }}'
     """
 

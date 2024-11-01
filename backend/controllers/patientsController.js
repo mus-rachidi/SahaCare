@@ -131,23 +131,23 @@ const getPatientById = async (req, res) => {
 };
 
 const getPatientCounts = async (req, res) => {
-    console.log("GET /api/patients/counts endpoint hit"); // Log when endpoint is called
+    // console.log("GET /api/counts endpoint hit"); // Log when endpoint is called
 
     try {
         const todayCountResult = await promisePool.query(
             "SELECT COUNT(*) AS count FROM Patients WHERE DATE(PaymentDate) = CURDATE()"
         );
-        console.log("Today Count Result:", todayCountResult); // Log query result
+        // console.log("Today Count Result:", todayCountResult); // Log query result
 
         const monthlyCountResult = await promisePool.query(
             "SELECT COUNT(*) AS count FROM Patients WHERE MONTH(PaymentDate) = MONTH(CURDATE()) AND YEAR(PaymentDate) = YEAR(CURDATE())"
         );
-        console.log("Monthly Count Result:", monthlyCountResult); // Log query result
+        // console.log("Monthly Count Result:", monthlyCountResult); // Log query result
 
         const yearlyCountResult = await promisePool.query(
             "SELECT COUNT(*) AS count FROM Patients WHERE YEAR(PaymentDate) = YEAR(CURDATE())"
         );
-        console.log("Yearly Count Result:", yearlyCountResult); // Log query result
+        // console.log("Yearly Count Result:", yearlyCountResult); // Log query result
 
         res.json({
             today: todayCountResult[0][0].count,

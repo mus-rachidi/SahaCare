@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import AddAppointmentModal from '../Modals/AddApointmentModal';
 import { AppointmentTable } from '../Tables';
 
-function AppointmentsUsed({ doctor, patientId }) {
+function AppointmentsUsed({ patientId }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({});
   const [appointmentsData, setAppointmentsData] = useState([]);

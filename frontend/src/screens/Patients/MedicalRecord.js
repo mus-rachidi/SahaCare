@@ -7,10 +7,13 @@ import { RiDeleteBin6Line } from 'react-icons/ri';
 import { medicalRecodData } from '../../components/Datas';
 import MedicalRecodModal from '../../components/Modals/MedicalRecodModal';
 import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 function MedicalRecord() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [datas, setDatas] = React.useState({});
+
+  const { id } = useParams();
   const navigate = useNavigate();
   return (
     <>
@@ -37,7 +40,7 @@ function MedicalRecord() {
               label="New Record"
               Icon={BiPlus}
               onClick={() => {
-                navigate(`/patients/visiting/2`);
+                navigate(`/patients/visiting/${id}`);
               }}
             />
           </div>

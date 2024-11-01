@@ -654,8 +654,7 @@ export function AppointmentTable({ data, patientNames, doctorNames, functions })
           <th className={thclass}>Date</th>
           <th className={thclass}>Time</th>
           <th className={thclass}>Hours</th>
-          <th className={thclass}>Patient Full Name</th>
-          <th className={thclass}>Doctor Full Name</th>
+          <th className={thclass}>Doctor </th>
         </tr>
       </thead>
       <tbody>
@@ -679,9 +678,6 @@ export function AppointmentTable({ data, patientNames, doctorNames, functions })
 
             <td className={tdclass}>
               <p className="text-xs">{item.hours}</p>
-            </td>
-            <td className={tdclass}>
-              <p className="text-xs">{patientNames[item.patient_id] || 'Loading...'}</p>
             </td>
             <td className={tdclass}>
               <p className="text-xs">{doctorNames[item.doctor_id] || 'Loading...'}</p>
@@ -864,17 +860,10 @@ export function MedicineDosageTable({ data, functions, button }) {
       <thead className="bg-dry rounded-md overflow-hidden">
         <tr>
           <th className={thclasse}>Item</th>
-          <th className={thclasse}>
-            Item Price
-            <span className="text-xs font-light ml-1">(MAD)</span>
-          </th>
           <th className={thclasse}>Dosage</th>
           <th className={thclasse}>Instraction</th>
           <th className={thclasse}>Quantity</th>
-          <th className={thclasse}>
-            Amout
-            <span className="text-xs font-light ml-1">(MAD)</span>
-          </th>
+     
           {button && <th className={thclasse}>Actions</th>}
         </tr>
       </thead>
@@ -885,11 +874,9 @@ export function MedicineDosageTable({ data, functions, button }) {
             className="border-b border-border hover:bg-greyed transitions"
           >
             <td className={tdclasse}>{item.name}</td>
-            <td className={tdclasse}>{item.price}</td>
             <td className={tdclasse}>{item.id} - M/A/E</td>
             <td className={tdclasse}>{item.instraction}</td>
             <td className={tdclasse}>{item.id}</td>
-            <td className={tdclasse}>{item.price * item.id}</td>
             {button && (
               <td className={tdclasse}>
                 <button

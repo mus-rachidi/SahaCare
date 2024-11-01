@@ -32,14 +32,14 @@ function CreatePatient() {
         <PersonalInfo titles={false} onAddPatient={handleAddPatient} />
       </div>
       {/* Optionally display the list of patients */}
-      <div>
+      {/* <div>
         <h2 className="text-lg font-semibold">Patient List</h2>
         <ul>
           {patients.map((patient, index) => (
             <li key={index}>{patient.FullName}</li>
           ))}
         </ul>
-      </div>
+      </div> */}
     </Layout>
   );
 }

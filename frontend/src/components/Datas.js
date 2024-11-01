@@ -969,23 +969,23 @@ export const patientTab = [
   //   title: 'Payments',
   //   icon: RiMoneyDollarCircleLine,
   // },
-  {
-    id: 3,
-    title: 'Images',
-    icon: RiImageLine,
-  },
+  // {
+  //   id: 3,
+  //   title: 'Images',
+  //   icon: RiImageLine,
+  // },
   // {
   //   id: 4,
   //   title: 'Dental Chart',
   //   icon: RiStethoscopeLine,
   // },
   {
-    id: 4,
+    id: 3,
     title: 'Patient Information',
     icon: RiUserLine,
   },
   {
-    id: 5,
+    id: 4,
     title: 'Health Information',
     icon: RiHeartLine,
   },

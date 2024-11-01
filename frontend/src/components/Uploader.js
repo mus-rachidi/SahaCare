@@ -3,14 +3,31 @@ import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
 import { BiLoaderCircle } from 'react-icons/bi';
 import { FiUploadCloud } from 'react-icons/fi';
+import axios from 'axios';
 
-const Uploader = ({ setImage, image }) => {
+const Uploader = ({ setImage, patientId }) => {
   const [loading, setLoading] = useState(false);
 
-  // upload file
   const onDrop = useCallback(async (acceptedFiles) => {
-    toast.error('This feature is not available yet');
-  }, []);
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', acceptedFiles[0]);
+    formData.append('patient_id', patientId); 
+    try {
+      const response = await axios.post('http://localhost:5000/api/images/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setImage(response.data.imageUrl);
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error('Error uploading image');
+    } finally {
+      setLoading(false);
+    }
+  }, [setImage, patientId]);
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
@@ -32,7 +49,8 @@ const Uploader = ({ setImage, image }) => {
           (Only *.jpeg and *.png images will be accepted)
         </em>
       </div>
-      {/* image preview */}
+
+      {/* Image preview */}
       <div className="lg:col-span-2 sm:col-span-4 col-span-12">
         {loading ? (
           <div className="px-6 w-full bg-dry flex-colo h-32 border-2 border-border border-dashed rounded-md">
@@ -41,9 +59,9 @@ const Uploader = ({ setImage, image }) => {
           </div>
         ) : (
           <img
-            src={image ? image : 'http://placehold.it/300x300'}
+            src={'http://placehold.it/300x300'} 
             alt="preview"
-            className=" w-full h-32 rounded object-cover"
+            className="w-full h-32 rounded object-cover"
           />
         )}
       </div>

@@ -37,20 +37,20 @@ function PatientProfile() {
   const tabPanel = () => {
     switch (activeTab) {
       case 1:
-        return <MedicalRecord data={patientData} />;
+        return <MedicalRecord patientId={id}/>;
       case 2:
-        return <AppointmentsUsed doctor={false} patientId={id} />;
+        return <AppointmentsUsed  patientId={id} />;
       // case 3:
       //   return <InvoiceUsed patientId={id} />;
       // case 4:
       //   return <PaymentsUsed doctor={false} patientId={id} />;
-      case 3:
-        return <PatientImages patientId={id} />;
+      // case 3:
+      //   return <PatientImages patientId={id} />;
       // case 6:
       //   return <DentalChart patientId={id} />;
-      case 4:
+      case 3:
         return <PersonalInfo titles={false} data={patientData} />;
-      case 5:
+      case 4:
         return <HealthInfomation data={patientData} />;
       default:
         return;
@@ -80,7 +80,11 @@ function PatientProfile() {
           data-aos-offset="200"
           className="col-span-12 flex-colo gap-6 lg:col-span-4 bg-white rounded-xl border-[1px] border-border p-6 lg:sticky top-28"
         >
-        
+                  <img
+            src="/images/a.png"
+            alt="setting"
+            className="w-40 h-40 rounded-full object-cover border border-dashed border-subMain"
+          />
           <div className="gap-2 flex-colo">
             <h2 className="text-sm font-semibold">{patientData.FullName}</h2>
             <p className="text-xs text-textGray">{patientData.email}</p>
