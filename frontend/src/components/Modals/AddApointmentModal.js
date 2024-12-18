@@ -270,32 +270,31 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-  <div className="flex flex-col">
-    <label className="text-sm font-medium text-gray-700 mb-1">Start Time</label>
-    <select
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">Start Time</label>
+            <select
       value={startTime}
       onChange={(e) => setStartTime(e.target.value)}
-      className="w-full border rounded-lg p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-32 overflow-y-auto"
-      style={{ scrollbarWidth: 'thin', overflowY: 'auto' }} // Optional for custom scroll
+      className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
-      <option value="" disabled>Select time</option>
-      {timeOptions.map((time) => (
-        <option key={time} value={time}>{time}</option>
+      {timeOptions.map((time, index) => (
+        <option key={index} value={time}>
+          {time}
+        </option>
       ))}
     </select>
   </div>
-
   <div className="flex flex-col">
     <label className="text-sm font-medium text-gray-700 mb-1">End Time</label>
     <select
       value={endTime}
       onChange={(e) => setEndTime(e.target.value)}
-      className="w-full border rounded-lg p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-32 overflow-y-auto"
-      style={{ scrollbarWidth: 'thin', overflowY: 'auto' }} // Optional for custom scroll
+      className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
-      <option value="" disabled>Select time</option>
-      {timeOptions.map((time) => (
-        <option key={time} value={time}>{time}</option>
+      {timeOptions.map((time, index) => (
+        <option key={index} value={time}>
+          {time}
+        </option>
       ))}
     </select>
   </div>

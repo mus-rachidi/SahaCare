@@ -8,6 +8,7 @@ import {
   TbUsers,
 } from 'react-icons/tb';
 import { FaRegCalendarAlt, FaTelegramPlane, FaWhatsapp } from 'react-icons/fa';
+import { FaPaperclip } from 'react-icons/fa'; 
 import {
   RiFileList3Line,
   RiHeartLine,
@@ -68,7 +69,7 @@ export const MenuDatas = [
     icon: MdOutlineInventory2,
   },
   {
-    title: 'Medicine',
+    title: 'Products',
     path: '/medicine',
     icon: RiMedicineBottleLine,
   },
@@ -305,7 +306,7 @@ export const sortsDatas = {
   measure: [
     {
       id: 1,
-      name: 'Select Measure',
+      name: 'unit',
     },
     {
       id: 2,
@@ -986,8 +987,8 @@ export const patientTab = [
   },
   {
     id: 4,
-    title: 'Health Information',
-    icon: RiHeartLine,
+    title: 'Attachment ',
+    icon: FaPaperclip,
   },
 ];
 

@@ -14,11 +14,10 @@ import DentalChart from './DentalChart';
 import { toast } from 'react-hot-toast';
 
 function PatientProfile() {
-  const { id } = useParams(); // Get patient ID from URL
+  const { id } = useParams(); 
   const [activeTab, setActiveTab] = useState(1);
-  const [patientData, setPatientData] = useState(null); // State to hold patient data
+  const [patientData, setPatientData] = useState(null); 
 
-  // Function to fetch patient data by ID
   const fetchPatientData = async () => {
     try {
       const response = await fetch(`http://localhost:5000/api/patients/${id}`);

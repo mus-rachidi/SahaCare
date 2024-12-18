@@ -13,6 +13,8 @@ function MedicalRecord() {
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null); // Track the record to delete
 
   const { id } = useParams(); // The patient_id from the route
   const navigate = useNavigate();
@@ -33,20 +35,30 @@ function MedicalRecord() {
     };
 
     fetchMedicalRecords();
-  }, [id]); // Re-run fetch when patient_id (id) changes
+  }, [id]);
 
-  // Handle delete record for a specific patient
-  const handleDelete = async (recordId) => {
+  // Handle the delete action (when confirmed)
+  const handleDelete = async () => {
+    if (!recordToDelete) return;
+
     try {
-      const response = await fetch(`http://localhost:5000/api/medicalrecords/${recordId}`, {
+      const response = await fetch(`http://localhost:5000/api/medicalrecords/${recordToDelete}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Error deleting medical record');
       toast.success('Medical record deleted successfully');
-      setMedicalRecords(medicalRecords.filter((record) => record.record_id !== recordId));
+      setMedicalRecords(medicalRecords.filter((record) => record.record_id !== recordToDelete));
+      setIsDeleteConfirmOpen(false); // Close the confirmation modal
     } catch (error) {
       toast.error('Error deleting medical record');
+      setIsDeleteConfirmOpen(false); // Close the confirmation modal on error as well
     }
+  };
+
+  // Close the delete confirmation modal
+  const closeDeleteConfirm = () => {
+    setIsDeleteConfirmOpen(false);
+    setRecordToDelete(null); // Clear the record to delete
   };
 
   if (loading) return <p>Loading medical records...</p>;
@@ -54,17 +66,17 @@ function MedicalRecord() {
 
   return (
     <>
-     {isOpen && (
-  <MedicalRecodModal
-    closeModal={() => {
-      setIsOpen(false);
-      setDatas({});
-    }}
-    isOpen={isOpen}
-    datas={datas}
-    patientId={id} 
-  />
-)}
+      {isOpen && (
+        <MedicalRecodModal
+          closeModal={() => {
+            setIsOpen(false);
+            setDatas({});
+          }}
+          isOpen={isOpen}
+          datas={datas}
+          patientId={id}
+        />
+      )}
 
       <div className="flex flex-col gap-6">
         <div className="flex-btn gap-4">
@@ -73,7 +85,7 @@ function MedicalRecord() {
             <Button
               label="New Record"
               Icon={BiPlus}
-              onClick={() => navigate(`/patients/visiting/${id}`)} // Ensure this links to the correct page for the specific patient
+              onClick={() => navigate(`/patients/visiting/${id}`)}
             />
           </div>
         </div>
@@ -145,7 +157,10 @@ function MedicalRecord() {
                 <FiEye />
               </button>
               <button
-                onClick={() => handleDelete(record.record_id)}
+                onClick={() => {
+                  setIsDeleteConfirmOpen(true);
+                  setRecordToDelete(record.record_id); // Set the record to delete
+                }}
                 className="text-sm flex-colo bg-white text-red-600 border border-border rounded-md w-2/4 md:w-10 h-10"
               >
                 <RiDeleteBin6Line />
@@ -154,6 +169,29 @@ function MedicalRecord() {
           </div>
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg">
+            <p className="text-lg font-semibold mb-4">Are you sure you want to delete this record?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={closeDeleteConfirm}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

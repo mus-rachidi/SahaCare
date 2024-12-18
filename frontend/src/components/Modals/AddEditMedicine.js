@@ -39,7 +39,7 @@ function AddEditMedicineModal({ closeModal, isOpen, datas, addOrUpdateMedicine }
     <Modal
       closeModal={closeModal}
       isOpen={isOpen}
-      title={datas?.name ? 'Edit Medicine' : 'New Medicine'}
+      title={datas?.name ? 'Edit Product' : 'New Product'}
       width={'max-w-3xl'}
     >
       <div className="flex-colo gap-6">

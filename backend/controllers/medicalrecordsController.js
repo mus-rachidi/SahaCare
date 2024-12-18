@@ -4,7 +4,19 @@ const moment = require('moment');
 // Get all medical records
 const getMedicalRecords = async (req, res) => {
     try {
-        const [rows] = await promisePool.query('SELECT * FROM medical_records');
+        // Extract patient_id from query parameters
+        const { patient_id } = req.query;
+
+        let query = 'SELECT * FROM medical_records';
+        const queryParams = [];
+
+        // If patient_id is provided, filter the records by patient_id
+        if (patient_id) {
+            query += ' WHERE patient_id = ?';
+            queryParams.push(patient_id);
+        }
+
+        const [rows] = await promisePool.query(query, queryParams);
 
         const formattedRecords = rows.map(record => ({
             ...record,
@@ -17,6 +29,7 @@ const getMedicalRecords = async (req, res) => {
         res.status(500).json({ error: 'Error fetching medical records' });
     }
 };
+
 
 // Add a new medical record
 const addMedicalRecord = async (req, res) => {

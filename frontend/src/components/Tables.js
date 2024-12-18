@@ -234,15 +234,23 @@ export function InvoiceTable() {
   );
 }
 
+
 export function MedicineTable({ data, onEdit, onDelete }) {
-  const deleteMedicine = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/medicines/${id}`);
-      toast.success('Medicine deleted successfully');
-      onDelete(id); // Call the onDelete function passed as a prop
-    } catch (error) {
-      toast.error('Error deleting medicine');
+  const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [medicineToDelete, setMedicineToDelete] = useState(null);
+
+  const handleDeleteConfirm = async () => {
+    if (medicineToDelete) {
+      try {
+        await axios.delete(`http://localhost:5000/api/medicines/${medicineToDelete.id}`);
+        toast.success('Medicine deleted successfully');
+        onDelete(medicineToDelete.id); // Call onDelete passed as a prop
+      } catch (error) {
+        toast.error('Error deleting medicine');
+      }
     }
+    setDeleteConfirmOpen(false); // Close the modal after action
+    setMedicineToDelete(null); // Reset the medicine to delete
   };
 
   const getDropdownActions = (item) => [
@@ -255,9 +263,8 @@ export function MedicineTable({ data, onEdit, onDelete }) {
       title: 'Delete',
       icon: RiDeleteBin6Line,
       onClick: () => {
-        if (window.confirm(`Are you sure you want to delete ${item.name}?`)) {
-          deleteMedicine(item.id); // Trigger medicine deletion
-        }
+        setMedicineToDelete(item); // Set the item to be deleted
+        setDeleteConfirmOpen(true); // Open the confirmation modal
       },
     },
   ];
@@ -266,66 +273,98 @@ export function MedicineTable({ data, onEdit, onDelete }) {
   const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Body styles
 
   return (
-    <div style={{
-      overflowY: 'auto',
-      maxHeight: '400px',
-      border: '1px solid #e2e8f0',
-      borderRadius: '0.375rem',
-      padding: '1rem',
-    }}>
-      <table className="table-auto w-full">
-        <thead className="bg-dry rounded-md overflow-hidden">
-          <tr>
-            <th className={thclass}>Name</th>
-            <th className={thclass}>
-              Price <span className="text-xs font-light">(MAD)</span>
-            </th>
-            <th className={thclass}>Status</th>
-            <th className={thclass}>In Stock</th>
-            <th className={thclass}>Measure</th>
-            <th className={thclass}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
-              <td className={tdclass}>
-                <h4 className="text-sm font-medium">{item.name}</h4>
-              </td>
-              <td className={`${tdclass} font-semibold`}>{item.price}</td>
-              <td className={tdclass}>
-                <span className={`text-xs font-medium ${item.status === 'out of stock' ? 'text-red-600' : 'text-green-600'}`}>
-                  {item.status}
-                </span>
-              </td>
-              <td className={tdclass}>{item.inStock}</td>
-              <td className={tdclass}>{item.measure}</td>
-              <td className={tdclass}>
-                <MenuSelect datas={getDropdownActions(item)} item={item}>
-                  <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
-                    <BiDotsHorizontalRounded />
-                  </div>
-                </MenuSelect>
-              </td>
+    <>
+      <div style={{
+        overflowY: 'auto',
+        maxHeight: '400px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '0.375rem',
+        padding: '1rem',
+      }}>
+        <table className="table-auto w-full">
+          <thead className="bg-dry rounded-md overflow-hidden">
+            <tr>
+              <th className={thclass}>Name</th>
+              <th className={thclass}>
+                Price <span className="text-xs font-light">(MAD)</span>
+              </th>
+              <th className={thclass}>Status</th>
+              <th className={thclass}>In Stock</th>
+              <th className={thclass}>Measure</th>
+              <th className={thclass}>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
+                <td className={tdclass}>
+                  <h4 className="text-sm font-medium">{item.name}</h4>
+                </td>
+                <td className={`${tdclass} font-semibold`}>{item.price}</td>
+                <td className={tdclass}>
+                  <span className={`text-xs font-medium ${item.status === 'out of stock' ? 'text-red-600' : 'text-green-600'}`}>
+                    {item.status}
+                  </span>
+                </td>
+                <td className={tdclass}>{item.inStock}</td>
+                <td className={tdclass}>{item.measure}</td>
+                <td className={tdclass}>
+                  <MenuSelect datas={getDropdownActions(item)} item={item}>
+                    <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
+                      <BiDotsHorizontalRounded />
+                    </div>
+                  </MenuSelect>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg">
+            <p className="text-lg font-semibold mb-4">Are you sure you want to delete {medicineToDelete?.name}?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
-export function ServiceTable({ data, onEdit, setData }) {
-  const deleteService = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/services/${id}`);
-      toast.success('Service deleted successfully');
 
-      // Update the state by filtering out the deleted service
-      setData((prevData) => prevData.filter(service => service.id !== id));
-    } catch (error) {
-      toast.error('Error deleting service');
+export function ServiceTable({ data, onEdit, setData }) {
+  const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
+
+  const handleDeleteConfirm = async () => {
+    if (serviceToDelete) {
+      try {
+        await axios.delete(`http://localhost:5000/api/services/${serviceToDelete.id}`);
+        toast.success('Service deleted successfully');
+
+        // Update the state by filtering out the deleted service
+        setData((prevData) => prevData.filter(service => service.id !== serviceToDelete.id));
+      } catch (error) {
+        toast.error('Error deleting service');
+      }
     }
+    setDeleteConfirmOpen(false); // Close the confirmation modal
+    setServiceToDelete(null); // Reset the service to delete
   };
 
   const DropDown1 = (item) => [
@@ -340,9 +379,8 @@ export function ServiceTable({ data, onEdit, setData }) {
       title: 'Delete',
       icon: RiDeleteBin6Line,
       onClick: () => {
-        if (window.confirm('Are you sure you want to delete this service?')) {
-          deleteService(item.id);
-        }
+        setServiceToDelete(item); // Set the service to delete
+        setDeleteConfirmOpen(true); // Open confirmation modal
       },
     },
   ];
@@ -351,40 +389,164 @@ export function ServiceTable({ data, onEdit, setData }) {
   const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Body styles
 
   return (
-    <div style={{
-      overflowY: 'auto',
-      maxHeight: '400px',
-      border: '1px solid #e2e8f0',
-      borderRadius: '0.375rem',
-      padding: '1rem',
-    }}>
+    <>
+      <div style={{
+        overflowY: 'auto',
+        maxHeight: '400px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '0.375rem',
+        padding: '1rem',
+      }}>
+        <table className="table-auto w-full">
+          <thead className="bg-dry rounded-md overflow-hidden">
+            <tr>
+              <th className={thclass}>Name</th>
+              <th className={thclass}>Created At</th>
+              <th className={thclass}>
+                Price <span className="text-xs font-light">(MAD)</span>
+              </th>
+              <th className={thclass}>Status</th>
+              <th className={thclass}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
+                <td className={tdclass}>
+                  <h4 className="text-sm font-medium">{item?.name}</h4>
+                </td>
+                <td className={tdclass}>{new Date(item?.date).toLocaleDateString()}</td>
+                <td className={`${tdclass} font-semibold`}>{item?.price}</td>
+                <td className={tdclass}>
+                  <span className={`text-xs font-medium ${item?.status === 'disable' ? 'text-red-600' : 'text-green-600'}`}>
+                    {item?.status === 'disable' ? 'Disabled' : 'Enabled'}
+                  </span>
+                </td>
+                <td className={tdclass}>
+                  <MenuSelect datas={DropDown1(item)} item={item}>
+                    <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
+                      <BiDotsHorizontalRounded />
+                    </div>
+                  </MenuSelect>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg">
+            <p className="text-lg font-semibold mb-4">Are you sure you want to delete this service?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+
+
+export function PatientTable({ data, setData, functions, used }) {
+  const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState(null);
+
+  const handleDeleteConfirm = async () => {
+    if (patientToDelete) {
+      try {
+        const response = await axios.delete(`http://localhost:5000/api/patients/${patientToDelete.id}`);
+        alert(response.data.message); // Show success message
+
+        // Remove the deleted item from the data state
+        setData((prevData) => prevData.filter((patient) => patient.id !== patientToDelete.id));
+      } catch (error) {
+        console.error('Error deleting patient:', error);
+        alert('Error deleting patient'); // Show error message
+      }
+    }
+    setDeleteConfirmOpen(false); // Close the confirmation modal
+    setPatientToDelete(null); // Reset the patient to delete
+  };
+
+  const DropDown1 = !used
+    ? [
+        {
+          title: 'View',
+          icon: FiEye,
+          onClick: (data) => {
+            functions.preview(data.id);
+          },
+        },
+        {
+          title: 'Delete',
+          icon: RiDeleteBin6Line,
+          onClick: (item) => {
+            setPatientToDelete(item); // Set the patient to delete
+            setDeleteConfirmOpen(true); // Open confirmation modal
+          },
+        },
+      ]
+    : [
+        {
+          title: 'View',
+          icon: FiEye,
+          onClick: (data) => {
+            functions.preview(data.id);
+          },
+        },
+      ];
+
+  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; // Header clarity
+  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Increased text size for clarity
+
+  return (
+    <>
       <table className="table-auto w-full">
         <thead className="bg-dry rounded-md overflow-hidden">
           <tr>
-            <th className={thclass}>Name</th>
+            <th className={thclass}>#</th>
+            <th className={thclass}>Full Name</th>
+            <th className={thclass}>Phone</th>
             <th className={thclass}>Created At</th>
-            <th className={thclass}>
-              Price <span className="text-xs font-light">(MAD)</span>
-            </th>
-            <th className={thclass}>Status</th>
+            <th className={thclass}>Age</th>
+            <th className={thclass}>Gender</th>
+            <th className={thclass}>Services</th>
             <th className={thclass}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item) => (
             <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
+              <td className={tdclass}>{item.id}</td>
+              <td className={tdclass}>{item.FullName}</td>
+              <td className={tdclass}>{item.phone}</td>
+              <td className={tdclass}>{moment(item.created_at).format('MMMM D, YYYY - HH:mm')}</td>
+              <td className={tdclass}>{item.age}</td>
               <td className={tdclass}>
-                <h4 className="text-sm font-medium">{item?.name}</h4>
-              </td>
-              <td className={tdclass}>{new Date(item?.date).toLocaleDateString()}</td>
-              <td className={`${tdclass} font-semibold`}>{item?.price}</td>
-              <td className={tdclass}>
-                <span className={`text-xs font-medium ${item?.status === 'disable' ? 'text-red-600' : 'text-green-600'}`}>
-                  {item?.status === 'disable' ? 'Disabled' : 'Enabled'}
+                <span
+                  className={`py-1 px-4 ${item.gender === 'Male' ? 'bg-subMain text-subMain' : 'bg-orange-500 text-orange-500'} bg-opacity-10 text-xs rounded-xl`}
+                >
+                  {item.gender}
                 </span>
               </td>
+              <td className={tdclass}>{item.services || 'None'}</td>
               <td className={tdclass}>
-                <MenuSelect datas={DropDown1(item)} item={item}>
+                <MenuSelect datas={DropDown1} item={item}>
                   <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
                     <BiDotsHorizontalRounded />
                   </div>
@@ -394,93 +556,29 @@ export function ServiceTable({ data, onEdit, setData }) {
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
 
-export function PatientTable({ data, setData, functions, used }) {
-  const DropDown1 = !used
-    ? [
-      {
-        title: 'View',
-        icon: FiEye,
-        onClick: (data) => {
-          functions.preview(data.id);
-        },
-      },
-      {
-        title: 'Delete',
-        icon: RiDeleteBin6Line,
-        onClick: async (item) => {
-          if (window.confirm('Are you sure you want to delete this patient?')) {
-            try {
-              const response = await axios.delete(`http://localhost:5000/api/patients/${item.id}`);
-              alert(response.data.message); // Show success message
-
-              // Remove the deleted item from the data state
-              setData((prevData) => prevData.filter((patient) => patient.id !== item.id));
-            } catch (error) {
-              console.error('Error deleting patient:', error);
-              alert('Error deleting patient'); // Show error message
-            }
-          }
-        },
-      },
-    ]
-    : [
-      {
-        title: 'View',
-        icon: FiEye,
-        onClick: (data) => {
-          functions.preview(data.id);
-        },
-      },
-    ];
-
-  const thclass = 'text-start text-sm font-medium py-3 px-2 whitespace-nowrap bg-gray-200 text-gray-800'; // Header clarity
-  const tdclass = 'text-start text-base py-3 px-2 whitespace-nowrap text-gray-700'; // Increased text size for clarity
-
-  return (
-    <table className="table-auto w-full">
-      <thead className="bg-dry rounded-md overflow-hidden">
-        <tr>
-          <th className={thclass}>#</th>
-          <th className={thclass}>Full Name</th>
-          <th className={thclass}>Phone</th>
-          <th className={thclass}>Created At</th>
-          <th className={thclass}>Age</th>
-          <th className={thclass}>Gender</th>
-          <th className={thclass}>Services</th>
-          <th className={thclass}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item) => (
-          <tr key={item.id} className="border-b border-border hover:bg-greyed transitions">
-            <td className={tdclass}>{item.id}</td>
-            <td className={tdclass}>{item.FullName}</td>
-            <td className={tdclass}>{item.phone}</td>
-            <td className={tdclass}>{moment(item.created_at).format('MMMM D, YYYY - HH:mm')}</td>
-            <td className={tdclass}>{item.age}</td>
-            <td className={tdclass}>
-              <span
-                className={`py-1 px-4 ${item.gender === 'Male' ? 'bg-subMain text-subMain' : 'bg-orange-500 text-orange-500'} bg-opacity-10 text-xs rounded-xl`}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg">
+            <p className="text-lg font-semibold mb-4">Are you sure you want to delete this patient?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
               >
-                {item.gender}
-              </span>
-            </td>
-            <td className={tdclass}>{item.services || 'None'}</td>
-            <td className={tdclass}>
-              <MenuSelect datas={DropDown1} item={item}>
-                <div className="bg-dry border text-main text-lg py-2 px-4 rounded-lg">
-                  <BiDotsHorizontalRounded />
-                </div>
-              </MenuSelect>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
