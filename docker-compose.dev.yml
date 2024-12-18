@@ -10,8 +10,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql 
-      - mysql_data:/var/lib/mysql     
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/mysql:/var/lib/mysql
     networks:
       - backend-network
     healthcheck:
@@ -19,55 +19,60 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-###########################################################################################
+    restart: always
+
   backend:
     build:
-      context: ./backend  
+      context: ./backend
       dockerfile: dockerfile.dev
     container_name: backend
     env_file:
-      - .env.dev 
+      - .env.dev
     volumes:
       - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
       - ./backend/public/images/upload:/usr/src/app/public/images/upload
     ports:
       - "5000:5000"
     depends_on:
       mysql:
-        condition: service_healthy 
+        condition: service_healthy
     networks:
       - backend-network
+    restart: always
 
-###########################################################################################
   frontend:
     build:
-      context: ./frontend  
-      dockerfile: dockerfile.dev 
+      context: ./frontend
+      dockerfile: dockerfile.dev
     container_name: frontend
     volumes:
-      - ./frontend/:/usr/src/app  
-      - /usr/src/app/node_modules   
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
-      - "3000:3000"  
+      - "3000:3000"
     networks:
       - backend-network
     environment:
-      - CHOKIDAR_USEPOLLING=true 
-###########################################################################################
+      - CHOKIDAR_USEPOLLING=true
+    restart: always
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
     environment:
-      PMA_HOST: mysql  
+      PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-      - "8080:80"  
+      - "8080:80"
     networks:
       - backend-network
-###########################################################################################
+    restart: always
+
 networks:
   backend-network:
     driver: bridge
-###########################################################################################
+
 volumes:
   mysql_data:
+    driver: local

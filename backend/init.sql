@@ -1,6 +1,16 @@
 CREATE DATABASE IF NOT EXISTS healthcare;
 
 USE healthcare;
+CREATE TABLE IF NOT EXISTS doctors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fullName VARCHAR(100) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(15) NOT NULL,
+    password VARCHAR(255) NOT NULL, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    image VARCHAR(255)
+);
 
 CREATE TABLE IF NOT EXISTS Patients (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,10 +28,9 @@ CREATE TABLE IF NOT EXISTS Patients (
     services VARCHAR(255),
     price DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    doctor_id BIGINT UNSIGNED,
+    doctor_id INT, 
     FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL
 );
-
 
 CREATE TABLE services (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,7 +77,7 @@ CREATE TABLE Medicines (
 CREATE TABLE IF NOT EXISTS Invoices (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     patient_id INT NOT NULL, 
-    doctor_id BIGINT UNSIGNED NOT NULL, 
+      doctor_id INT, 
     total_amount DECIMAL(10, 2) NOT NULL,
     created_date DATE NOT NULL,  
     due_date DATE NOT NULL,      
@@ -88,36 +97,24 @@ CREATE TABLE IF NOT EXISTS appointments (
     status ENUM('Pending', 'Approved', 'Cancel'),
     date DATE,
     patient_id INT,            
-    doctor_id BIGINT UNSIGNED,
+      doctor_id INT, 
     FOREIGN KEY (patient_id) REFERENCES Patients(id), 
     FOREIGN KEY (doctor_id) REFERENCES doctors(id)  
-);
-
-
-CREATE TABLE IF NOT EXISTS doctors (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    fullName VARCHAR(100) NOT NULL,
-    title VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    phone VARCHAR(15) NOT NULL,
-    password VARCHAR(255) NOT NULL, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    image VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS medical_records (
     record_id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id INT NOT NULL,   
-    doctor_id BIGINT UNSIGNED, 
-    record_date DATE NOT NULL,
+    doctor_id INT, 
+    record_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     diagnosis TEXT,
     treatment TEXT,
-    medicine VARCHAR(100),         
-    dosage VARCHAR(50),             
-    quantity INT,                  
+    medicine VARCHAR(255),         
+    dosage VARCHAR(255),             
     instruction ENUM('Before meal', 'After meal') NOT NULL,
     complaints TEXT,          
-    vital_signs VARCHAR(255),
+    vital_signs TEXT,
+    note TEXT,
     attachment VARCHAR(255), 
     FOREIGN KEY (patient_id) REFERENCES Patients(id) ON DELETE CASCADE,
     FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL

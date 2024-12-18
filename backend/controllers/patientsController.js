@@ -103,15 +103,6 @@ const deletePatient = async (req, res) => {
     }
 };
 
-// Function to reorder patient IDs after a deletion
-const reorderPatientIds = async () => {
-    const [patients] = await promisePool.query("SELECT id FROM Patients ORDER BY id ASC");
-    const updates = patients.map((patient, index) => {
-        const newId = index + 1; // New ID should be index + 1
-        return promisePool.query("UPDATE Patients SET id = ? WHERE id = ?", [newId, patient.id]);
-    });
-    await Promise.all(updates); // Wait for all updates to complete
-};
 
 // Get a patient by ID
 const getPatientById = async (req, res) => {
