@@ -8,6 +8,7 @@ import AppointmentsUsed from '../../components/UsedComp/AppointmentsUsed';
 import InvoiceUsed from '../../components/UsedComp/InvoiceUsed';
 import PaymentsUsed from '../../components/UsedComp/PaymentUsed';
 import PersonalInfo from '../../components/UsedComp/PersonalInfo';
+import PersonalInfoo from '../../components/UsedComp/PersonalInfoo';
 import PatientImages from './PatientImages';
 import HealthInfomation from './HealthInfomation';
 import DentalChart from './DentalChart';
@@ -48,7 +49,7 @@ function PatientProfile() {
       // case 6:
       //   return <DentalChart patientId={id} />;
       case 3:
-        return <PersonalInfo titles={false} data={patientData} />;
+        return <PersonalInfoo />;
       case 4:
         return <HealthInfomation data={patientData} />;
       default:

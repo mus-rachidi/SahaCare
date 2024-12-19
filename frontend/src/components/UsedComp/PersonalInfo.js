@@ -154,7 +154,7 @@ function PersonalInfo({ titles }) {
       </div>
 
       {/* Address */}
-      <div className="flex flex-col w-full gap-3">
+      {/* <div className="flex flex-col w-full gap-3">
         <p className="text-black text-sm">Address</p>
         <input
           ref={addressRef}
@@ -162,7 +162,7 @@ function PersonalInfo({ titles }) {
           placeholder="Address"
           className="input-class p-4 border border-gray-300 rounded-lg focus:border-blue-500"
         />
-      </div>
+      </div> */}
 
       {/* Gender */}
       <div className="flex flex-col w-full gap-3">

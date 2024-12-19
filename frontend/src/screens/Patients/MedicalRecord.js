@@ -11,6 +11,7 @@ function MedicalRecord() {
   const [isOpen, setIsOpen] = useState(false);
   const [datas, setDatas] = useState({});
   const [medicalRecords, setMedicalRecords] = useState([]);
+  const [patientData, setPatientData] = useState(null); // New state to hold patient data (including amount)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -18,6 +19,22 @@ function MedicalRecord() {
 
   const { id } = useParams(); // The patient_id from the route
   const navigate = useNavigate();
+
+  // Fetch patient data including amount
+  const fetchPatientData = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/patients/${id}`);
+      if (!response.ok) throw new Error('Error fetching patient data');
+      const data = await response.json();
+      setPatientData(data); // Set the fetched patient data
+    } catch (error) {
+      toast.error('Error fetching patient data');
+    }
+  };
+
+  useEffect(() => {
+    fetchPatientData(); // Fetch patient data when component mounts
+  }, [id]);
 
   // Fetch medical records for the specific patient using their patient_id
   useEffect(() => {
@@ -143,7 +160,7 @@ function MedicalRecord() {
             </div>
             <div className="col-span-12 md:col-span-2">
               <p className="text-xs text-subMain font-semibold">
-                <span className="font-light text-main">(MAD)</span> {record.amount || 'N/A'}
+                <span className="font-light text-main">(MAD)</span> {patientData?.amount || 'N/A'}
               </p>
             </div>
             <div className="col-span-12 md:col-span-2 flex-rows gap-2">

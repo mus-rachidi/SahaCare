@@ -470,12 +470,12 @@ export function PatientTable({ data, setData, functions, used }) {
     if (patientToDelete) {
       try {
         const response = await axios.delete(`http://localhost:5000/api/patients/${patientToDelete.id}`);
-        alert(response.data.message); // Show success message
+        // alert(response.data.message); // Show success message
 
         // Remove the deleted item from the data state
         setData((prevData) => prevData.filter((patient) => patient.id !== patientToDelete.id));
       } catch (error) {
-        console.error('Error deleting patient:', error);
+        // console.error('Error deleting patient:', error);
         alert('Error deleting patient'); // Show error message
       }
     }

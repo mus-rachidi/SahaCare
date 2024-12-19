@@ -5,8 +5,7 @@ import { IoArrowBackOutline } from 'react-icons/io5';
 import { Button, Checkbox } from '../../components/Form';
 import { HiOutlineCheckCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
-import { FaTimes } from 'react-icons/fa';
-import Uploader from '../../components/Uploader';
+
 import { useNavigate } from 'react-router-dom';
 function NewMedicalRecode() {
   const navigate = useNavigate();

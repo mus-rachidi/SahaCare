@@ -45,7 +45,7 @@ function AddEditMedicineModal({ closeModal, isOpen, datas, addOrUpdateMedicine }
       <div className="flex-colo gap-6">
         <div className="grid sm:grid-cols-2 gap-4 w-full">
           <div className="flex flex-col">
-            <label className="text-black text-sm">Medicine Name</label>
+            <label className="text-black text-sm">Products Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}

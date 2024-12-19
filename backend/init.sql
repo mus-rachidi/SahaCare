@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS Patients (
     image VARCHAR(255),
     admin BOOLEAN,
     email VARCHAR(100),
-    phone VARCHAR(15),
+    phone VARCHAR(20),
     age INT CHECK (age >= 0),
     gender VARCHAR(10),
     totalAppointments INT,
@@ -96,11 +96,12 @@ CREATE TABLE IF NOT EXISTS appointments (
     hours INT,
     status ENUM('Pending', 'Approved', 'Cancel'),
     date DATE,
-    patient_id INT,            
-      doctor_id INT, 
-    FOREIGN KEY (patient_id) REFERENCES Patients(id), 
-    FOREIGN KEY (doctor_id) REFERENCES doctors(id)  
+    patient_id INT,
+    doctor_id INT, 
+    FOREIGN KEY (patient_id) REFERENCES Patients(id) ON DELETE CASCADE,  
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id)
 );
+
 
 CREATE TABLE IF NOT EXISTS medical_records (
     record_id INT AUTO_INCREMENT PRIMARY KEY,

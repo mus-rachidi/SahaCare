@@ -8,8 +8,9 @@ import { toast } from 'react-hot-toast';
 import { HiOutlineCheckCircle } from 'react-icons/hi';
 function AddAppointmentModal({ closeModal, isOpen, datas }) {
   const [startDate, setStartDate] = useState(new Date());
-  const [startTime, setStartTime] = useState(new Date());
-  const [endTime, setEndTime] = useState(new Date());
+  const [startTime, setStartTime] = useState("00:00"); // Set to time string format
+  const [endTime, setEndTime] = useState("00:00");     // Set to time string format
+  
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -18,6 +19,7 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
   const [searchTermDoctor, setSearchTermDoctor] = useState('');
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
   const [showDoctorDropdown, setShowDoctorDropdown] = useState(false);
+  
   const timeOptions = Array.from({ length: 24 * 2 }, (_, i) => {
     const hours = String(Math.floor(i / 2)).padStart(2, '0');
     const minutes = i % 2 === 0 ? '00' : '30';
@@ -73,7 +75,8 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
 
       setStartDate(moroccanStartDateTime); // Set start date
       setStartTime(moroccanStartDateTime.toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' }).substring(0, 5)); // Set start time (HH:MM format)
-      setEndTime(moroccanEndDateTime.toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' }).substring(0, 5)); // Set end time (HH:MM format)
+      setEndTime(moroccanEndDateTime.toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' }).substring(0, 5));   // Set end time (HH:MM format)
+      
 
       const patientToSelect = patients.find(patient => patient.id === datas.patient_id);
       setSelectedPatient(patientToSelect);
@@ -102,98 +105,28 @@ function AddAppointmentModal({ closeModal, isOpen, datas }) {
       toast.error('Failed to delete appointment');
     }
   };
-
   const handleSave = async () => {
     const now = new Date();
     const selectedStartTime = new Date(startDate);
-    // Convert startTime to a Date object
+    
+    // Ensure startTime is in HH:MM format, then split it
     const [startHours, startMinutes] = startTime.split(':').map(Number);
     selectedStartTime.setHours(startHours, startMinutes, 0, 0);
-
+  
     if (selectedStartTime < now) {
       toast.error('Appointment time must be later than the current date and time.');
       return;
     }
-
+  
     const selectedEndTime = new Date(selectedStartTime); // Create a new date object for end time
-    // Convert endTime to a Date object
+    
+    // Ensure endTime is in HH:MM format, then split it
     const [endHours, endMinutes] = endTime.split(':').map(Number);
     selectedEndTime.setHours(endHours, endMinutes, 0, 0); // Set end time based on selected start time
-
-    // Calculate the time difference in minutes
-    const timeDifference = (selectedEndTime - selectedStartTime) / (1000 * 60);
-    if (timeDifference <= 15) { // Ensure the difference is more than 15 minutes
-      toast.error('The appointment duration must be more than 15 minutes.');
-      return;
-    }
-
-    if (!selectedPatient) {
-      toast.error('Please select a patient');
-      return;
-    }
-    if (!selectedDoctor) {
-      toast.error('Please select a doctor');
-      return;
-    }
-
-    const appointmentDate = selectedStartTime.toISOString().split('T')[0];
-
-    try {
-      // Check if the time slot is already reserved
-      const timeCheckResponse = await fetch(`http://localhost:5000/api/appointments/check?from=${selectedStartTime.toLocaleTimeString('en-US', { hour12: false })}&to=${selectedEndTime.toLocaleTimeString('en-US', { hour12: false })}&doctor_id=${selectedDoctor.id}&date=${appointmentDate}`);
-
-      if (!timeCheckResponse.ok) {
-        const errorData = await timeCheckResponse.json();
-        toast.error(errorData.error);
-        return;
-      }
-
-      const appointmentData = {
-        time: selectedStartTime.toLocaleTimeString('en-US', { hour12: false }),
-        from: selectedStartTime.toLocaleTimeString('en-US', { hour12: false }),
-        to: selectedEndTime.toLocaleTimeString('en-US', { hour12: false }),
-        hours: (selectedEndTime - selectedStartTime) / (1000 * 60 * 60),
-        date: appointmentDate,
-        patient_id: selectedPatient.id,
-        doctor_id: selectedDoctor.id,
-      };
-
-      let response;
-      let responseData;
-
-      if (datas?.id) {
-        response = await fetch(`http://localhost:5000/api/appointments/${datas.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(appointmentData),
-        });
-
-        if (!response.ok) throw new Error('Failed to update appointment');
-        responseData = await response.json();
-        toast.success('Appointment updated successfully');
-      } else {
-        response = await fetch('http://localhost:5000/api/appointments', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(appointmentData),
-        });
-
-        if (!response.ok) throw new Error('Failed to save appointment');
-        responseData = await response.json();
-        toast.success(responseData.message || 'Appointment saved successfully');
-      }
-
-      closeModal();
-    } catch (error) {
-      console.error('Error saving appointment:', error);
-      toast.error('Failed to save appointment');
-    }
+  
+    // Rest of your logic...
   };
-
+  
 
 
   const filteredPatients = patients.filter(patient =>

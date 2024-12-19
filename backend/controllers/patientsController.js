@@ -24,39 +24,6 @@ const getPatients = async (req, res) => {
     }
 };
 
-// Add a new patient
-const addPatient = async (req, res) => {
-    const { FullName, image, admin, email, phone, age, gender, totalAppointments, services, price } = req.body;
-
-    try {
-        const adminValue = admin === 'True' || admin === true ? 1 : 0;
-        const currentDate = moment();
-        const formattedDate = currentDate.format("YYYY-MM-DD - HH:mm"); // Format includes hours and minutes
-        
-
-        // Fetch current patient IDs
-        const [patients] = await promisePool.query("SELECT id FROM Patients");
-        const existingIds = patients.map(patient => patient.id);
-
-        // Determine the next available ID
-        let nextId = 1;
-        while (existingIds.includes(nextId)) {
-            nextId++;
-        }
-
-        // Insert the new patient with the next available ID
-        await promisePool.query(
-            `INSERT INTO Patients (id, FullName, image, admin, email, phone, age, gender, totalAppointments, PaymentDate, services, price)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [nextId, FullName, image, adminValue, email, phone, age, gender, totalAppointments, formattedDate, services, price]
-        );
-
-        res.status(201).json({ message: 'Patient added successfully' });
-    } catch (err) {
-        console.error("Error adding patient:", err);
-        res.status(500).json({ error: "Error adding patient" });
-    }
-};
 
 // Update a patient by ID
 const updatePatient = async (req, res) => {
@@ -161,7 +128,6 @@ const getPaymentSummary = async (req, res) => {
                 SUM(CASE WHEN MONTH(PaymentDate) = MONTH(CURDATE()) AND YEAR(PaymentDate) = YEAR(CURDATE()) THEN amount ELSE 0 END) AS monthlyTotal,
                 SUM(CASE WHEN YEAR(PaymentDate) = YEAR(CURDATE()) THEN amount ELSE 0 END) AS yearlyTotal
             FROM Patients
-            WHERE status = 'Paid'
         `;
 
         const [rows] = await promisePool.query(sql);
@@ -216,8 +182,93 @@ const updatePatientAmountAndStatus = async (req, res) => {
     }
 };
 
+// Define the maximum length for phone numbers
+const maxPhoneLength = 20; // Adjust based on your needs
+
+const addPatient = async (req, res) => {
+    const { FullName, image, admin, email, phone, age, gender, totalAppointments, services, price } = req.body;
+
+    // Validate phone number length
+    if (phone.length > maxPhoneLength) {
+        return res.status(400).send(`Phone number is too long. Maximum length is ${maxPhoneLength}.`);
+    }
+
+    try {
+        const adminValue = admin === 'True' || admin === true ? 1 : 0;
+        const currentDate = moment();
+        const formattedDate = currentDate.format("YYYY-MM-DD - HH:mm");
+
+        // Fetch current patient IDs
+        const [patients] = await promisePool.query("SELECT id FROM Patients");
+        const existingIds = patients.map(patient => patient.id);
+
+        // Determine the next available ID
+        let nextId = 1;
+        while (existingIds.includes(nextId)) {
+            nextId++;
+        }
+
+        // Insert the new patient with the next available ID
+        await promisePool.query(
+            `INSERT INTO Patients (id, FullName, image, admin, email, phone, age, gender, totalAppointments, PaymentDate, services, price)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [nextId, FullName, image, adminValue, email, phone, age, gender, totalAppointments, formattedDate, services, price]
+        );
+
+        res.status(201).json({ message: 'Patient added successfully' });
+    } catch (err) {
+        console.error("Error adding patient:", err);
+        res.status(500).json({ error: "Error adding patient" });
+    }
+};
+
+const updateAllPatientData = async (req, res) => {
+    const { id } = req.params;
+    const { FullName, image, admin, email, phone, age, gender, totalAppointments, services, price } = req.body;
+
+    // Validate phone number length
+    if (phone.length > maxPhoneLength) {
+        return res.status(400).send(`Phone number is too long. Maximum length is ${maxPhoneLength}.`);
+    }
+
+    // Set admin value based on the input
+    const adminValue = admin === 'True' || admin === true ? 1 : 0;
+
+    const sqlUpdate = `
+        UPDATE Patients
+        SET FullName = ?, 
+            image = ?, 
+            admin = ?, 
+            email = ?, 
+            phone = ?, 
+            age = ?, 
+            gender = ?, 
+            totalAppointments = ?, 
+            services = ?, 
+            price = ?
+        WHERE id = ?
+    `;
+
+    try {
+        // Execute the update query
+        const [result] = await promisePool.query(sqlUpdate, [FullName, image, adminValue, email, phone, age, gender, totalAppointments, services, price, id]);
+
+        // Check if any rows were affected (i.e., if the patient was found)
+        if (result.affectedRows === 0) {
+            return res.status(404).send("Patient not found");
+        }
+
+        // Send success response
+        res.send("Patient data updated successfully");
+    } catch (err) {
+        console.error("Error updating patient data:", err);
+        res.status(500).send("Error updating patient data");
+    }
+};
+
 
 module.exports = { 
+    updateAllPatientData,
     updatePatientAmountAndStatus,
     getPatients,
     getPatientCounts,
