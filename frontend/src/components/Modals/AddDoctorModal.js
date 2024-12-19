@@ -139,7 +139,7 @@ function AddDoctorModal({ closeModal, isOpen, doctor }) {
           <Button label="Save" Icon={HiOutlineCheckCircle} type="submit" />
         </div>
       </form>
-    </Modal>
+    </Modal>                  
   );
 }
 

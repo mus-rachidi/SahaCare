@@ -583,6 +583,9 @@ export function PatientTable({ data, setData, functions, used }) {
 }
 
 export function DoctorsTable({ data, onEdit, setData }) {
+  const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [doctorToDelete, setDoctorToDelete] = useState(null);
+
   const deleteDoctor = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/doctors/${id}`);
@@ -590,8 +593,15 @@ export function DoctorsTable({ data, onEdit, setData }) {
 
       // Update the state by filtering out the deleted doctor
       setData((prevData) => prevData.filter(doctor => doctor.id !== id));
+      setDeleteConfirmOpen(false); // Close the confirmation modal
     } catch (error) {
       toast.error('Error deleting doctor');
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (doctorToDelete) {
+      deleteDoctor(doctorToDelete.id);
     }
   };
 
@@ -607,9 +617,8 @@ export function DoctorsTable({ data, onEdit, setData }) {
       title: 'Delete',
       icon: RiDeleteBin6Line,
       onClick: () => {
-        if (window.confirm('Are you sure you want to delete this doctor?')) {
-          deleteDoctor(doctor.id);
-        }
+        setDoctorToDelete(doctor);
+        setDeleteConfirmOpen(true); // Open the confirmation modal
       },
     },
   ];
@@ -657,6 +666,28 @@ export function DoctorsTable({ data, onEdit, setData }) {
           ))}
         </tbody>
       </table>
+
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg">
+            <p className="text-lg font-semibold mb-4">Are you sure you want to delete this doctor?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

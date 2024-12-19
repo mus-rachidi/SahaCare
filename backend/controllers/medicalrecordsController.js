@@ -33,13 +33,13 @@ const getMedicalRecords = async (req, res) => {
 
 // Add a new medical record
 const addMedicalRecord = async (req, res) => {
-    const { patient_id, doctor_id, diagnosis, treatment, medicine, dosage, quantity, complaints, vital_signs, note } = req.body;
+    const { patient_id, doctor_id, diagnosis, treatment, medicine, dosage, complaints, vital_signs, note } = req.body;
     const record_date = moment().format("YYYY-MM-DD HH:mm:ss");
 
     try {
         const [result] = await promisePool.query(
-            'INSERT INTO medical_records (patient_id, doctor_id, record_date, diagnosis, treatment, medicine, dosage, quantity, complaints, vital_signs, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [patient_id, doctor_id, record_date, diagnosis, treatment, medicine, dosage, quantity, complaints, vital_signs, note]
+            'INSERT INTO medical_records (patient_id, doctor_id, record_date, diagnosis, treatment, medicine, dosage, complaints, vital_signs, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [patient_id, doctor_id, record_date, diagnosis, treatment, medicine, dosage, complaints, vital_signs, note]
         );
 
         res.status(201).json({ id: result.insertId, message: 'Medical record added successfully', record_date: record_date });
@@ -52,14 +52,14 @@ const addMedicalRecord = async (req, res) => {
 // Update an existing medical record
 const updateMedicalRecord = async (req, res) => {
     const { id } = req.params;
-    const { patient_id, doctor_id, record_date, diagnosis, treatment, medicine, dosage, quantity, complaints, vital_signs, note } = req.body;
+    const { patient_id, doctor_id, record_date, diagnosis, treatment, medicine, dosage, complaints, vital_signs, note } = req.body;
 
     try {
         const finalRecordDate = record_date ? new Date(record_date) : new Date();
 
         await promisePool.query(
-            'UPDATE medical_records SET patient_id = ?, doctor_id = ?, record_date = ?, diagnosis = ?, treatment = ?, medicine = ?, dosage = ?, quantity = ?, complaints = ?, vital_signs = ?, note = ? WHERE record_id = ?',
-            [patient_id, doctor_id, finalRecordDate, diagnosis, treatment, medicine, dosage, quantity, complaints, vital_signs, note, id]
+            'UPDATE medical_records SET patient_id = ?, doctor_id = ?, record_date = ?, diagnosis = ?, treatment = ?, medicine = ?, dosage = ?, complaints = ?, vital_signs = ?, note = ? WHERE record_id = ?',
+            [patient_id, doctor_id, finalRecordDate, diagnosis, treatment, medicine, dosage, complaints, vital_signs, note, id]
         );
         res.json({ message: 'Medical record updated successfully' });
     } catch (error) {
